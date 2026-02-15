@@ -49,9 +49,11 @@ Both machines will:
 5. Finish initial setup.
 
 📸 **Hyper-V VM settings for WS-01**
+
 ![Hyper-V VM settings for WS-01](/screenshots/01-03-vmsettings.png)
 
 📸 **First login screen**
+
 ![First login screen](/screenshots/01-03-firstlogin.png)
 
 ---
@@ -67,6 +69,7 @@ After Windows installation is completed and before domain join:
 This snapshot will serve as the base image for WS-02.
 
 📸 **Windows 11 Pro clean install checkpoint**
+
 ![Windows 11 Pro clean install checkpoint](/screenshots/01-03-checkpoint.png)
 
 ---
@@ -78,6 +81,7 @@ This snapshot will serve as the base image for WS-02.
 - Rename it to WS-02
 
 📸 **WS-02 Created from WS-01 checkpoint**
+
 ![WS-02 Created from WS-01 checkpoint](/screenshots/01-03-newvmfromcopy.png)
 
 ---
@@ -92,9 +96,11 @@ This snapshot will serve as the base image for WS-02.
 - Gateway: 10.10.10.1
 
 📸 **Network settings for WS-01**
+
 ![Network settings for WS-01](/screenshots/01-03-ws01networkconfig.png)
 
 📸 **Screenshot showing WS-01 name**
+
 ![Screenshot showing WS-01 name](/screenshots/01-03-ws01name.png)
 
 ### WS-02 Configuration
@@ -105,9 +111,11 @@ This snapshot will serve as the base image for WS-02.
 - Gateway: 10.10.10.1
 
 📸 **Network settings for WS-02**
+
 ![Network settings for WS-02](/screenshots/01-03-ws02networkconfig.png)
 
 📸 **Screenshot showing WS-02 name**
+
 ![Screenshot showing WS-02 name](/screenshots/01-03-ws02name.png)
 
 ---
@@ -133,6 +141,7 @@ On DC01:
 - Confirm WS-01 and WS-02 appear in the Computers container.
 
 📸 **Screenshot of ADUC after both WS joined the domain**
+
 ![Screenshot of ADUC after both WS joined the domain](/screenshots/01-03-aduc.png)
 
 On each workstation:
@@ -142,9 +151,11 @@ On each workstation:
 - Verify communication with the Domain Controller.
 
 📸 **WS-01 logged in as BOCORP/Administrator**
+
 ![WS-01 logged in as BOCORP/Administrator](/screenshots/01-03-ws01adminlogin.png)
 
 📸 **WS-02 logged in as BOCORP/Administrator**
+
 ![WS-02 logged in as BOCORP/Administrator](/screenshots/01-03-ws02adminlogin.png)
 
 ---

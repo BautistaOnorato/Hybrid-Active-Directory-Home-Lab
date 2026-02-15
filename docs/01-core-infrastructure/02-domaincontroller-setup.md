@@ -26,9 +26,11 @@ This server will become the authentication and directory authority for all domai
 - Installation Media: Windows Server 2025 Standard Evaluation (Desktop Experience)
 
 📸 **Installation setup screen with edition selection**
+
 ![Installation setup screen with edition selection](/screenshots/01-02-editionselection.png)
 
 📸 **First boot desktop after installation**
+
 ![First boot desktop after installation](/screenshots/01-02-firstscreen.png)
 
 ---
@@ -42,6 +44,7 @@ After the first login:
 Rename the server to DC01 and restart it to apply the change.
 
 📸 **Screenshot showing changed computer name**
+
 ![Screenshot showing changed computer name](/screenshots/01-02-computername.png)
 
 ---
@@ -58,6 +61,7 @@ Example configuration used in the lab:
 - Preferred DNS Server: 10.10.10.10
 
 📸 **Network settings showing static IP and DNS config**
+
 ![Network settings showing static IP and DNS config](/screenshots/01-02-networkconfig.png)
 
 ---
@@ -67,6 +71,7 @@ Example configuration used in the lab:
 Install the Active Directory Domain Services role along with the required management tools.
 
 📸 **"Add Roles and Features Wizard" with AD DS selected**
+
 !["Add Roles and Features Wizard" with AD DS selected](/screenshots/01-02-addswizard.png)
 
 ---
@@ -83,6 +88,7 @@ Promote the server by:
 The server will automatically reboot after the promotion process completes.
 
 📸 **Domain configuration summary**
+
 ![Domain configuration summary](/screenshots/01-02-domainconfig.png)
 
 ---
@@ -98,9 +104,11 @@ After reboot:
 - Verified DNS Manager shows the proper forward lookup zone
 
 📸 **Login screen showing BOCORP\Administrator**
+
 ![Log in screen showing BOCORP\Administrator](/screenshots/01-02-loginscreen.png)
 
 📸 **DNS Manager showing forward lookup zone for ```bocorp.local```**
+
 ![DNS Manager showing forward lookup zone for bocorp.local](/screenshots/01-02-dnsmanager.png)
 
 ---
