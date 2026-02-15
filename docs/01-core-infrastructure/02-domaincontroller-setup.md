@@ -1,4 +1,4 @@
-# 02 – DC01 Deployment
+# 02 – Domain Controller Setup
 
 ---
 
@@ -52,10 +52,10 @@ Because this machine will host DNS and Active Directory, it must use a static IP
 
 Example configuration used in the lab:
 
-- IP Address: 192.168.1.2
+- IP Address: 10.10.10.10
 - Subnet Mask: 255.255.255.0
-- Default Gateway: 192.168.1.1
-- Preferred DNS Server: 192.168.1.2
+- Default Gateway: 10.10.10.1
+- Preferred DNS Server: 10.10.10.10
 
 📸 **Network settings showing static IP and DNS config**
 ![Network settings showing static IP and DNS config](/screenshots/01-02-networkconfig.png)
@@ -97,7 +97,7 @@ After reboot:
 - Verified Active Directory Users and Computers is accessible
 - Verified DNS Manager shows the proper forward lookup zone
 
-📸 **Log in screen showing BOCORP\Administrator**
+📸 **Login screen showing BOCORP\Administrator**
 ![Log in screen showing BOCORP\Administrator](/screenshots/01-02-loginscreen.png)
 
 📸 **DNS Manager showing forward lookup zone for ```bocorp.local```**

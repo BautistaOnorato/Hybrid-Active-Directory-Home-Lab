@@ -42,14 +42,14 @@ This phase includes:
 
 ### Client Workstations
 - `WS-01` – Windows 11 Pro (manual installation)
-- `WS-02` – Windows 11 Pro (deployed from standardized snapshot)
+- `WS-02` – Windows 11 Pro (deployed from snapshot/checkpoint)
 
 ---
 
 ## 🌐 Network Design (Initial Baseline)
 
-- Virtual Switch Type: External
-- Domain Controller IP: 192.168.1.2 (Static)
+- Virtual Switch Type: Internal + NAT
+- Domain Controller IP: 10.10.10.10 (Static)
 - Clients: DHCP (to be configured in later phase)
 - DNS: Domain Controller
 
@@ -60,10 +60,8 @@ This configuration ensures internal domain functionality while maintaining inter
 ## 📂 Files Included
 
 - `01-hyperv-setup.md` – Hyper-V enablement and virtual switch configuration  
-- `02-dc01-deployment.md` – Windows Server installation and Domain Controller promotion  
-- `03-ws01-deployment.md` – First workstation deployment and domain join  
-- `04-ws02-deployment.md` – Snapshot-based workstation deployment  
-- `05-validation.md` – Infrastructure validation checklist  
+- `02-domaincontroller-setup.md` – Windows Server installation and Domain Controller promotion  
+- `03-client-setup.md` – Windows 11 Pro installation and configuration
 
 ---
 
@@ -82,6 +80,3 @@ By completing this phase:
 
 - **Integrated Domain-Joined Endpoints:**  
   Connected two Windows 11 workstations to the domain, validating authentication and internal name resolution.
-
-- **Laid the Foundation for Active Directory Configuration:**  
-  Built a stable infrastructure baseline ready for OU design, policy implementation, and service configuration in Phase 2.
