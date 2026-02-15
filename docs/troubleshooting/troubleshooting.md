@@ -22,6 +22,7 @@ Maintaining this troubleshooting log helps improve problem-solving efficiency, e
 After creating **WS-02** from a checkpoint of WS-01, the virtual machine failed to start and displayed the following error in Hyper-V:
 
 📸 **Screenshot of the error**
+
 ![1. Issue error screenshot](/screenshots/tb-01.png)
 
 ## 🔍 Root Cause Analysis
