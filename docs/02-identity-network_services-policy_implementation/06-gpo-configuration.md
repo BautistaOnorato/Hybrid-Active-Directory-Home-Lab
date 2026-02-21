@@ -383,6 +383,53 @@ Advanced auditing enables detailed monitoring of authentication, object access, 
 
 ---
 
+## 5️⃣ GPO Backup Strategy
+
+### 🎯 Objective
+
+Establish a repeatable and structured backup mechanism for all existing Group Policy Objects to ensure:
+
+- Recovery capability in case of accidental deletion or corruption  
+- Versioned configuration baselines  
+- Safer change management  
+
+---
+
+### 🛠️ Backup Automation Script
+
+A PowerShell script was created to automate the backup process and generate date-based versioning.
+
+#### 📂 Script: [`backup-gpo.ps1`](/scripts/backup-gpo.ps1)
+
+```powershell
+# Backup GPOs Script
+
+$Date = Get-Date -Format "yyyy-MM-dd"
+
+if (Test-Path -Path "C:\GPO-Backups") {
+    Write-Host "GPO backup directory exists."
+} else {
+    New-Item -Path "C:\GPO-Backups" -ItemType Directory
+}
+
+$Path = "C:\GPO-Backups\$Date"
+
+New-Item -Path $Path -ItemType Directory
+Backup-GPO -All -Path $Path -Comment "Backup on $Date" -Verbose
+```
+
+---
+
+## ✅ Operational Outcome
+
+- All GPO configurations are versioned.
+- A restorable baseline is created after Phase 2 completion.
+- The environment gains rollback capability.
+- Change management can be performed safely.
+- The lab reflects enterprise-grade operational practices.
+
+---
+
 ## ✅ Outcome
 
 Implemented structured, scope-based Group Policy configurations across the environment:
