@@ -1,4 +1,4 @@
-# 05 - Group Policy Configuration
+# 06 - Group Policy Configuration
 
 ---
 
