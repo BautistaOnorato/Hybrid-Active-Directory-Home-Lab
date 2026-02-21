@@ -59,7 +59,7 @@ A new IPv4 scope was created with the following configuration:
 
 ### Scope Name
 ```
-BOCORP-Workstations
+Bocorp WS Scope
 ```
 
 ### IP Address Range
@@ -74,19 +74,16 @@ End IP:   10.10.10.200
 ```
 
 ### Option 003 – Router (Default Gateway)
-
 ```
 10.10.10.1
 ```
 
 ### Option 006 – DNS Servers
-
 ```
 10.10.10.10 (DC-01)
 ```
 
 ### Option 015 – DNS Domain Name
-
 ```
 bocorp.local
 ```

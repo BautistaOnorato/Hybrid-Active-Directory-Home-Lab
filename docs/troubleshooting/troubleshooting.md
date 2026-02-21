@@ -25,7 +25,7 @@ After creating **WS-02** from a checkpoint of WS-01, the virtual machine failed 
 
 ![1. Issue error screenshot](/screenshots/tb-01.png)
 
-## 🔍 Root Cause Analysis
+### 🔍 Root Cause Analysis
 
 The issue was **not** related to:
 
@@ -50,7 +50,7 @@ This resulted in the error:
 
 ---
 
-## ✅ Resolution
+### ✅ Resolution
 
 Since the ISO was not required, the issue was resolved by:
 
@@ -67,7 +67,7 @@ The VM started successfully.
 
 ---
 
-## 🧠 Lessons Learned
+### 🧠 Lessons Learned
 
 - Avoid mounting ISOs from inside `C:\Users\` directories.
 - Use a dedicated folder structure for lab resources.
@@ -76,8 +76,108 @@ The VM started successfully.
 
 ---
 
-## 🎯 Best Practices
+### 🎯 Best Practices
 
 - Store ISOs outside user profile directories
 - Maintain a centralized lab resource structure
 - Document incidents to improve troubleshooting efficiency
+
+---
+
+## Issue 02 – Group Policy Failed Due to Firewall Rule Blocking SYSVOL Access
+
+### 📌 Description
+
+After applying a new firewall hardening GPO and running:
+
+```powershell
+gpupdate /force
+```
+
+The following error appeared on **WS-01**:
+
+```
+Windows could not read the file 
+\\bocorp.local\SysVol\bocorp.local\Policies\{GUID}\gpt.ini 
+from a domain controller.
+```
+
+As a result, Group Policy settings failed to apply.
+
+---
+
+### 🔍 Root Cause Analysis
+
+The issue was caused by a custom outbound firewall rule created to prevent lateral movement via SMB.
+
+The following rules were configured in the workstation firewall GPO:
+
+**Block Lateral Movement (SMB)**  
+- Rule Type: Port  
+- Protocol: TCP  
+- Local Port: 445  
+- Action: Block  
+- Profile: Domain  
+- Remote IP Address: `10.10.10.0/24`
+
+**Exception for Lateral Movement (SMB)**  
+- Rule Type: Port  
+- Protocol: TCP  
+- Local Port: 445  
+- Action: Allow  
+- Profile: Domain  
+- Remote IP Address: `10.10.10.10`
+
+Although an exception was created for the Domain Controller (`10.10.10.10`), the broader block rule (`10.10.10.0/24`) still included that IP range.
+
+In Windows Defender Firewall, **Block rules take precedence over Allow rules** when both apply to the same traffic.
+
+As a result:
+
+- SMB traffic to the Domain Controller was blocked
+- SYSVOL could not be accessed
+- `gpt.ini` could not be read
+- Group Policy processing failed
+
+---
+
+### ✅ Resolution
+
+The issue was resolved by:
+
+1. **Removing the Allow exception rule for 10.10.10.10**
+2. Modifying the scope of the Block rule to exclude the Domain Controller IP
+
+The new Remote IP scope for the Block rule was configured as:
+
+```
+10.10.10.1-9
+10.10.10.11-254
+```
+
+This excluded `10.10.10.10` from the blocked range.
+
+After applying the change:
+
+```powershell
+gpupdate /force
+```
+
+Group Policy processing completed successfully.
+
+---
+
+### 🧠 Lessons Learned
+
+- Blocking SMB outbound traffic can break Active Directory functionality.
+- SYSVOL access depends on SMB (TCP 445).
+- Firewall rule precedence must be carefully considered.
+- Avoid overlapping block and allow rules when possible.
+- When implementing lateral movement protection, explicitly exclude Domain Controllers from block ranges.
+
+---
+
+### 🎯 Best Practices
+
+- Never block SMB outbound traffic to Domain Controllers.
+- Use precise IP ranges instead of broad subnets when restricting lateral movement.
