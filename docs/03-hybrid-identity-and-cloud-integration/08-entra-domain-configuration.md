@@ -176,7 +176,7 @@ ForEach-Object {
 
 ---
 
-## 🔎 Script Explanation
+### 🔎 Script Explanation
 
 - Retrieves all users in the `Departments` OU  
 - Preserves existing `SamAccountName`  
@@ -185,7 +185,7 @@ ForEach-Object {
 
 ---
 
-## 3.2 Manual Verification
+### 3.2 Manual Verification
 
 1. Open:
    ```
@@ -205,7 +205,7 @@ User logon name: user@bocorp.online
 
 ---
 
-# ✅ Outcome
+## ✅ Outcome
 
 After completing this section:
 
