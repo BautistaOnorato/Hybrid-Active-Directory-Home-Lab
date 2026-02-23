@@ -120,7 +120,7 @@ The following groups were added:
 | Group | Permission |
 |--------|------------|
 | DL-Share-Finance-RW | Full Control |
-| DL-Share-Finance-RO | Change |
+| DL-Share-Finance-RO | Read |
 
 ### Permission Strategy
 
