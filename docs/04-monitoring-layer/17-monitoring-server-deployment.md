@@ -50,12 +50,12 @@ Boot the virtual machine using the Debian ISO and proceed with the installation 
 
 📸 **Hostname**
 
-![Hostname](/screenshots/17/05.png)
+![Hostname](/screenshots/17/03.png)
 
 📸 **Set up users and passwords**
 
-![Set up users and passwords](/screenshots/17/06.png)
-![Set up users and passwords](/screenshots/17/07.png)
+![Set up users and passwords](/screenshots/17/04.png)
+![Set up users and passwords](/screenshots/17/05.png)
 
 ### Disk Partitioning
 
@@ -77,7 +77,7 @@ Separating `/var` is particularly important for monitoring servers, since logs a
 
 📸 **Configured partitions overview**
 
-![Configured partitions overview](/screenshots/17/08.png)
+![Configured partitions overview](/screenshots/17/06.png)
 
 ### Selected Components
 
@@ -90,11 +90,11 @@ No graphical interface was installed in order to keep the system lightweight and
 
 📸 **Software selection screen**
 
-![Software selection screen](/screenshots/17/09.png)
+![Software selection screen](/screenshots/17/07.png)
 
 📸 **First login**
 
-![First login](/screenshots/17/10.png)
+![First login](/screenshots/17/08.png)
 
 ---
 

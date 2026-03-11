@@ -96,7 +96,7 @@ This ensures NTFS enforces granular access control while preserving administrati
 
 📸 **NTFS Advanced Security Settings – Finance Folder**
 
-![NTFS Security Settings](/screenshots/07-01-ntfs-permissions.png)
+![NTFS Security Settings](/screenshots/07/01.png)
 
 ---
 
@@ -132,7 +132,7 @@ In this design:
 
 📸 **Advanced Sharing Configuration – Finance**
 
-![Share Permissions](/screenshots/07-02-share-permissions.png)
+![Share Permissions](/screenshots/07/02.png)
 
 ---
 
@@ -159,7 +159,7 @@ Server Manager
 
 📸 **Access-Based Enumeration Enabled**
 
-![Access Based Enumeration](/screenshots/07-03-abe-enabled.png)
+![Access Based Enumeration](/screenshots/07/03.png)
 
 ---
 
@@ -228,7 +228,7 @@ The **Reconnect** option ensures the drive is automatically restored after netwo
 
 📸 **Drive Mapping Configuration – Finance**
 
-![Drive Mapping Configuration](/screenshots/07-04-drive-mapping.png)
+![Drive Mapping Configuration](/screenshots/07/04.png)
 
 ---
 
@@ -255,7 +255,7 @@ This ensures:
 
 📸 **Item-Level Targeting Configuration**
 
-![Item Level Targeting](/screenshots/07-05-item-level-targeting.png)
+![Item Level Targeting](/screenshots/07/05.png)
 
 ---
 
@@ -274,11 +274,11 @@ Testing was performed from **WS-01** to validate functionality.
 
 📸 **Mapped Drive Visible in File Explorer**
 
-![Mapped Drive Finance](/screenshots/07-06-mapped-drive.png)
+![Mapped Drive Finance](/screenshots/07/06.png)
 
 📸 **Access Denied Test from Non-Finance User**
 
-![Access Denied Test](/screenshots/07-07-access-denied.png)
+![Access Denied Test](/screenshots/07/07.png)
 
 ---
 

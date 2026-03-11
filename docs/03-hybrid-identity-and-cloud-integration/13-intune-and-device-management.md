@@ -108,7 +108,7 @@ Only users in this security group are automatically enrolled in Intune.
 
 📸 **Intune Auto-Enrollment Configuration**
 
-![Intune Auto-Enrollment](/screenshots/13/intune-user-scope.png)
+![Intune Auto-Enrollment](/screenshots/13/01.png)
 
 ---
 
@@ -131,11 +131,11 @@ Validation:
 
 📸 **Device visible in Microsoft Entra ID**
 
-![Device visible in Microsoft Entra ID](/screenshots/13/device-visible-in-entra-id.png)
+![Device visible in Microsoft Entra ID](/screenshots/13/02.png)
 
 📸 **Device visible in Microsoft Intune**
 
-![Device visible in Microsoft Intune](/screenshots/13/device-visible-in-intune.png)
+![Device visible in Microsoft Intune](/screenshots/13/03.png)
 
 ---
 
@@ -209,11 +209,11 @@ Access Controls:
 
 📸 **Non-Compliant Device Access Blocked**
 
-![Non-Compliant Device Access Blocked](/screenshots/13/non-compliant-device-blocked.png)
+![Non-Compliant Device Access Blocked](/screenshots/13/04.png)
 
 📸 **Compliant Device Access Allowed**
 
-![Compliant Device Access Allowed](/screenshots/13/compliant-device-allowed.png)
+![Compliant Device Access Allowed](/screenshots/13/05.png)
 
 ---
 
@@ -249,15 +249,15 @@ Platform:
 
 📸 **InPrivate Mode Disabled**
 
-![InPrivate Mode Disabled](/screenshots/13/inprivate-mode-disabled.png)
+![InPrivate Mode Disabled](/screenshots/13/06.png)
 
 📸 **Blocked URLs (youtube)**
 
-![Blocked URLs (youtube)](/screenshots/13/blocked-urls-youtube.png)
+![Blocked URLs (youtube)](/screenshots/13/07.png)
 
 📸 **Blocked URLs (twitter)**
 
-![Blocked URLs (twitter)](/screenshots/13/blocked-urls-twitter.png)
+![Blocked URLs (twitter)](/screenshots/13/08.png)
 
 ---
 
@@ -308,9 +308,9 @@ Control of Windows Update transitioned fully to Intune.
 
 📸 **Windows Update settings in WS-01**
 
-![Windows Update settings in WS-01](/screenshots/13/windows-update-settings-ws01.png)
+![Windows Update settings in WS-01](/screenshots/13/09.png)
 
-![Windows Update settings in WS-01](/screenshots/13/windows-update-settings-ws01b.png)
+![Windows Update settings in WS-01](/screenshots/13/10.png)
 
 ---
 

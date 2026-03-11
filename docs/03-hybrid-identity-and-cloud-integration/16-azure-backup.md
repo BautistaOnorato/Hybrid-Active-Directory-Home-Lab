@@ -47,7 +47,7 @@ RG-Bocorp-Backup
 
 📸 **Resource Group**
 
-![Resource Group](/screenshots/16/rg.png)
+![Resource Group](/screenshots/16/01.png)
 
 ---
 
@@ -86,11 +86,11 @@ This established secure communication between DC-01 and Azure Backup.
 
 📸 **MARS Agent Setup**
 
-![MARS Agent Setup](/screenshots/16/mars.png)
+![MARS Agent Setup](/screenshots/16/02.png)
 
 📸 **Server Registration**
 
-![Server Registration](/screenshots/16/register-server.png)
+![Server Registration](/screenshots/16/03.png)
 
 ---
 
@@ -113,11 +113,11 @@ KV-Bocorp-Backup
 
 📸 **Key Vault Secrets Officer role assigned to Recovery Services Vault**
 
-![Key Vault Secrets Officer role](/screenshots/16/role-assigned.png)
+![Key Vault Secrets Officer role](/screenshots/16/04.png)
 
 📸 **Key Vault Overview**
 
-![Key Vault Overview](/screenshots/16/key-vault.png)
+![Key Vault Overview](/screenshots/16/05.png)
 
 ---
 
@@ -137,19 +137,19 @@ Defined backup policy for:
 
 📸 **Backup Selection**
 
-![Backup Selection](/screenshots/16/select-items.png)
+![Backup Selection](/screenshots/16/06.png)
 
 📸 **Backup Schedule**
 
-![Backup Schedule](/screenshots/16/schedule.png)
+![Backup Schedule](/screenshots/16/07.png)
 
 📸 **Retention Policy**
 
-![Retention Policy  ](/screenshots/16/retention.png)
+![Retention Policy  ](/screenshots/16/08.png)
 
 📸 **Backup Confirmation**
 
-![Backup Confirmation](/screenshots/16/confirmation.png)
+![Backup Confirmation](/screenshots/16/09.png)
 ---
 
 ### 3.2 Initial Backup Execution
@@ -164,7 +164,7 @@ Performed manual **Back Up Now** to trigger initial backup.
 
 📸 **First Backup**
 
-![First Backup](/screenshots/16/first-backup.png)
+![First Backup](/screenshots/16/10.png)
 
 ---
 
@@ -189,7 +189,7 @@ Simulated recovery scenario:
 
 📸 **Recovery Simulation**
 
-![Recovery Simulation](/screenshots/16/recovery-partition.png)
+![Recovery Simulation](/screenshots/16/11.png)
 
 ---
 
@@ -216,15 +216,15 @@ This enables full Domain Controller recovery if required.
 
 📸 **System State Backup Schedule**
 
-![System State Backup Schedule](/screenshots/16/system-state-schedule.png)
+![System State Backup Schedule](/screenshots/16/12.png)
 
 📸 **System State Retention Policy**
 
-![System State Retention Policy](/screenshots/16/system-state-retention.png)
+![System State Retention Policy](/screenshots/16/13.png)
 
 📸 **System State Backup Confirmation**
 
-![System State Backup Confirmation](/screenshots/16/system-state-confirmation.png)
+![System State Backup Confirmation](/screenshots/16/14.png)
 
 ---
 
@@ -238,7 +238,7 @@ Created a dedicated shared mailbox for backup alerts.
 
 📸 **Shared Mailbox for Backup Alerts**
 
-![Shared Mailbox for Backup Alerts](/screenshots/16/backup-mailbox.png)
+![Shared Mailbox for Backup Alerts](/screenshots/16/15.png)
 
 **Purpose:**
 
@@ -267,7 +267,7 @@ AG-Backup-Fail
 
 📸 **Action Groups**
 
-![Action Groups](/screenshots/16/action-groups.png)
+![Action Groups](/screenshots/16/16.png)
 
 ---
 
@@ -298,7 +298,7 @@ RG-Bocorp-Backup
 
 📸 **LAW-Bocorp-Backup**
 
-![LAW-Bocorp-Backup](/screenshots/16/law.png)
+![LAW-Bocorp-Backup](/screenshots/16/17.png)
 
 ---
 
@@ -392,9 +392,9 @@ This guarantees immediate alerting when a backup failure occurs.
 
 📸 **Alert Configuration**
 
-![Alert Configuration](/screenshots/16/alert-1.png)
-![Alert Configuration](/screenshots/16/alert-2.png)
-![Alert Configuration](/screenshots/16/alert-3.png)
+![Alert Configuration](/screenshots/16/18.png)
+![Alert Configuration](/screenshots/16/19.png)
+![Alert Configuration](/screenshots/16/20.png)
 
 ---
 
@@ -419,11 +419,11 @@ Performed controlled backup failure testing to validate the new monitoring archi
 
 📸 **Alert Fired**
 
-![Alert Fired](/screenshots/16/alert-fired.png)
+![Alert Fired](/screenshots/16/21.png)
 
 📸 **Alert Email**
 
-![Alert Email](/screenshots/16/alert-email.png)
+![Alert Email](/screenshots/16/22.png)
 
 ---
 

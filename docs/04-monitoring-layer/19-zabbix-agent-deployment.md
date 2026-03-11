@@ -72,7 +72,7 @@ WS-02
 
 📸 **GG-Zabbix-WS group membership**
 
-![GG-Zabbix-WS group membership](/screenshots/19/03.png)
+![GG-Zabbix-WS group membership](/screenshots/19/01.png)
 
 ---
 
@@ -131,7 +131,7 @@ Click **Finish**.
 
 📸 **Inbound rule configured in GPO**
 
-![Inbound rule configured in GPO](/screenshots/19/05.png)
+![Inbound rule configured in GPO](/screenshots/19/02.png)
 
 ---
 
@@ -187,7 +187,7 @@ Select **Link an Existing GPO** → choose `GPO-Zabbix-FirewallRule` → **OK**
 
 📸 **GG-Zabbix-WS Scope tab**
 
-![Security Filtering + OU links](/screenshots/19/04.png)
+![Security Filtering + OU links](/screenshots/19/03.png)
 
 ---
 
@@ -226,7 +226,9 @@ Select:
 | Encryption | OpenSSL |
 | Package | MSI |
 
-![Security Filtering + OU links](/screenshots/19/01.png)
+📸 **Zabbix pre-compiled agent binaries**
+
+![Zabbix pre-compiled agent binaries](/screenshots/19/04.png)
 
 ---
 
@@ -247,7 +249,7 @@ Complete the installation on each host. The agent registers itself as a Windows 
 
 📸 **Zabbix Agent 2 installation wizard**
 
-![Zabbix Agent 2 installation wizard](/screenshots/19/02.png)
+![Zabbix Agent 2 installation wizard](/screenshots/19/05.png)
 
 ---
 

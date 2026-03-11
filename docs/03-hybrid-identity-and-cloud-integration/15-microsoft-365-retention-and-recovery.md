@@ -59,7 +59,7 @@ This policy ensures that:
 
 📸 **Retention Policy**
 
-![Retention Policy](/screenshots/15/retention-policy.png)
+![Retention Policy](/screenshots/15/01.png)
 
 ---
 
@@ -153,7 +153,7 @@ Scope included:
 
 📸 **Search-Deleted-Mail statistics**
 
-![Search-Deleted-Mail statistics](/screenshots/15/search-statistics.png)
+![Search-Deleted-Mail statistics](/screenshots/15/02.png)
 
 ---
 
@@ -165,11 +165,11 @@ Scope included:
 
 📸 **Export package**
 
-![Export package](/screenshots/15/mail-export.png)
+![Export package](/screenshots/15/03.png)
 
 📸 **Restored Email in Outlook**
 
-![Restored Email in Outlook](/screenshots/15/pst-outlook.png)
+![Restored Email in Outlook](/screenshots/15/04.png)
 
 ---
 
@@ -259,7 +259,7 @@ Scope included:
 
 📸 **Search-Deleted-File statistics**
 
-![Search-Deleted-File statistics](/screenshots/15/search-statistics-file.png)
+![Search-Deleted-File statistics](/screenshots/15/05.png)
 
 ---
 
@@ -271,11 +271,11 @@ Scope included:
 
 📸 **Export package**
 
-![Export package](/screenshots/15/file-export.png)
+![Export package](/screenshots/15/06.png)
 
 📸 **Restored File in OneDrive**
 
-![Restored File in OneDrive](/screenshots/15/excel-restored.png)
+![Restored File in OneDrive](/screenshots/15/07.png)
 
 ---
 

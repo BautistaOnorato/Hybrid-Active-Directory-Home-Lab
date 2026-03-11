@@ -50,11 +50,11 @@ Both machines will:
 
 📸 **Hyper-V VM settings for WS-01**
 
-![Hyper-V VM settings for WS-01](/screenshots/01-03-vmsettings.png)
+![Hyper-V VM settings for WS-01](/screenshots/03/01.png)
 
 📸 **First login screen**
 
-![First login screen](/screenshots/01-03-firstlogin.png)
+![First login screen](/screenshots/03/02.png)
 
 ---
 
@@ -70,7 +70,7 @@ This snapshot will serve as the base image for WS-02.
 
 📸 **Windows 11 Pro clean install checkpoint**
 
-![Windows 11 Pro clean install checkpoint](/screenshots/01-03-checkpoint.png)
+![Windows 11 Pro clean install checkpoint](/screenshots/03/03.png)
 
 ---
 
@@ -82,7 +82,7 @@ This snapshot will serve as the base image for WS-02.
 
 📸 **WS-02 Created from WS-01 checkpoint**
 
-![WS-02 Created from WS-01 checkpoint](/screenshots/01-03-newvmfromcopy.png)
+![WS-02 Created from WS-01 checkpoint](/screenshots/03/04.png)
 
 ---
 
@@ -97,11 +97,11 @@ This snapshot will serve as the base image for WS-02.
 
 📸 **Network settings for WS-01**
 
-![Network settings for WS-01](/screenshots/01-03-ws01networkconfig.png)
+![Network settings for WS-01](/screenshots/03/05.png)
 
 📸 **Screenshot showing WS-01 name**
 
-![Screenshot showing WS-01 name](/screenshots/01-03-ws01name.png)
+![Screenshot showing WS-01 name](/screenshots/03/06.png)
 
 ### WS-02 Configuration
 
@@ -112,11 +112,11 @@ This snapshot will serve as the base image for WS-02.
 
 📸 **Network settings for WS-02**
 
-![Network settings for WS-02](/screenshots/01-03-ws02networkconfig.png)
+![Network settings for WS-02](/screenshots/03/07.png)
 
 📸 **Screenshot showing WS-02 name**
 
-![Screenshot showing WS-02 name](/screenshots/01-03-ws02name.png)
+![Screenshot showing WS-02 name](/screenshots/03/08.png)
 
 ---
 
@@ -142,7 +142,7 @@ On DC01:
 
 📸 **Screenshot of ADUC after both WS joined the domain**
 
-![Screenshot of ADUC after both WS joined the domain](/screenshots/01-03-aduc.png)
+![Screenshot of ADUC after both WS joined the domain](/screenshots/03/09.png)
 
 On each workstation:
 
@@ -152,11 +152,11 @@ On each workstation:
 
 📸 **WS-01 logged in as BOCORP/Administrator**
 
-![WS-01 logged in as BOCORP/Administrator](/screenshots/01-03-ws01adminlogin.png)
+![WS-01 logged in as BOCORP/Administrator](/screenshots/03/10.png)
 
 📸 **WS-02 logged in as BOCORP/Administrator**
 
-![WS-02 logged in as BOCORP/Administrator](/screenshots/01-03-ws02adminlogin.png)
+![WS-02 logged in as BOCORP/Administrator](/screenshots/03/11.png)
 
 ---
 

@@ -48,7 +48,7 @@ nslookup WS-01.bocorp.local
 nslookup WS-02.bocorp.local
 ```
 
-![nslookup](/screenshots/20/07.png)
+![nslookup](/screenshots/20/01.png)
 
 ---
 
@@ -72,7 +72,7 @@ Click **Add**.
 
 📸 **Host group created**
 
-![Host group created](/screenshots/20/01.png)
+![Host group created](/screenshots/20/02.png)
 
 ---
 
@@ -115,7 +115,7 @@ Click **Add** to save the host.
 
 📸 **DC-01 settings**
 
-![DC-01 settings](/screenshots/20/02.png)
+![DC-01 settings](/screenshots/20/03.png)
 
 ---
 
@@ -142,7 +142,7 @@ Click **Add** to save.
 
 📸 **WS-01 settings**
 
-![WS-01 settings](/screenshots/20/03.png)
+![WS-01 settings](/screenshots/20/04.png)
 
 ---
 
@@ -169,7 +169,7 @@ Click **Add** to save.
 
 📸 **WS-02 settings**
 
-![WS-02 settings](/screenshots/20/04.png)
+![WS-02 settings](/screenshots/20/05.png)
 
 ---
 
@@ -196,7 +196,7 @@ Confirm each host shows:
 
 📸 **Hosts overview showing all agents connected**
 
-![Hosts overview](/screenshots/20/05.png)
+![Hosts overview](/screenshots/20/06.png)
 
 ---
 
@@ -224,7 +224,7 @@ Metrics arriving in real time confirmed:
 
 📸 **Latest data view for DC-01**
 
-![Latest data DC-01](/screenshots/20/06.png)
+![Latest data DC-01](/screenshots/20/07.png)
 
 ---
 

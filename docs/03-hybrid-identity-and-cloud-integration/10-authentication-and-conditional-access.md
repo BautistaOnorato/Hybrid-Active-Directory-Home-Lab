@@ -44,7 +44,7 @@ Save configuration.
 
 📸 **Microsoft Authenticator Policy**
 
-![Microsoft Authenticator Policy](/screenshots/10/mfa-auth-method.png)
+![Microsoft Authenticator Policy](/screenshots/10/01.png)
 
 ---
 
@@ -67,7 +67,7 @@ This ensures users are prompted to register MFA upon next sign-in.
 
 📸 **Registration Campaign**
 
-![Registration Campaign](/screenshots/10/mfa-registration.png)
+![Registration Campaign](/screenshots/10/02.png)
 
 ---
 
@@ -163,9 +163,9 @@ CA-Block-Legacy-Authentication
 
 - On  
 
-📸 **CA Policies**
+📸 **Conditional Access Policies**
 
-![CA Policies](/screenshots/10/ca-policies.png)
+![CA Policies](/screenshots/10/03.png)
 
 ---
 

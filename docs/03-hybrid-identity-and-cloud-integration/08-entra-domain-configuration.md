@@ -94,7 +94,7 @@ Verify
 
 📸 **Domain Verification Success**
 
-![Domain Verification Success](/screenshots/08/bocorp-domain.png)
+![Domain Verification Success](/screenshots/08/01.png)
 
 ---
 
@@ -134,7 +134,7 @@ Apply → OK
 
 📸 **Alternate UPN Suffix Configuration**
 
-![Alternate UPN Suffix](/screenshots/08/upn-suffix.png)
+![Alternate UPN Suffix](/screenshots/08/02.png)
 
 ---
 
@@ -164,7 +164,7 @@ This ensures cloud compatibility while preserving internal AD structure.
 
 ### 3.1 Bulk Update via PowerShell
 
-On **DC-01**, run [`change-upn.ps1`](/scripts/change-upn.ps1) :
+On **DC-01**, run [`change-upn.ps1`](/scripts/03.ps1) :
 
 ```powershell
 Get-ADUser -Filter * -SearchBase "OU=Departments,DC=bocorp,DC=local" |
@@ -201,7 +201,7 @@ User logon name: user@bocorp.online
 
 📸 **User Account UPN Updated**
 
-![User UPN Updated](/screenshots/08/change-upn.png)
+![User UPN Updated](/screenshots/08/03.png)
 
 ---
 

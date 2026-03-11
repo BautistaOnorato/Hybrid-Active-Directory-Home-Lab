@@ -23,7 +23,7 @@ After creating **WS-02** from a checkpoint of WS-01, the virtual machine failed 
 
 📸 **Screenshot of the error**
 
-![1. Issue error screenshot](/screenshots/tb-01.png)
+![1. Issue error screenshot](/screenshots/TB/01.png)
 
 ### 🔍 Root Cause Analysis
 

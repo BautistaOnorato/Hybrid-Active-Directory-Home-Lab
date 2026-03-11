@@ -154,7 +154,7 @@ Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Action1*" }
 
 📸 **Action1 console showing all three endpoints registered**
 
-![Action1 Endpoints](/screenshots/E02/05.png)
+![Action1 Endpoints](/screenshots/E02/01.png)
 
 ---
 
@@ -169,13 +169,13 @@ Two endpoint groups were created in the Action1 console to enable separate polic
 
 This separation ensures that update policies, automation schedules, and approval workflows can be configured independently for servers and workstations.
 
-📸 **Bocorp - Workstations group**
+📸 **Bocorp - Workstations group settings**
 
-![Bocorp - Workstations group](/screenshots/E02/06.png)
+![Bocorp - Workstations group settings](/screenshots/E02/02.png)
 
-📸 **Bocorp - Servers group**
+📸 **Bocorp - Servers group settings**
 
-![Bocorp - Servers group](/screenshots/E02/07.png)
+![Bocorp - Servers group settings](/screenshots/E02/03.png)
 
 ---
 
@@ -273,7 +273,7 @@ The critical update was identified and approved. The update status changed to **
 
 📸 **Update Approval view showing DC-01 updates approved**
 
-![Update Approval](/screenshots/E02/11.png)
+![Update Approval](/screenshots/E02/04.png)
 
 ---
 
@@ -346,7 +346,7 @@ Automations → New Automation → Run Script
 
 📸 **Execution results**
 
-![Remote Script Execution](/screenshots/E02/10.png)
+![Remote Script Execution](/screenshots/E02/05.png)
 
 ---
 

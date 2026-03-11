@@ -259,10 +259,10 @@ Advanced auditing enables detailed monitoring of authentication, object access, 
 
 📸 **Inbound Rules**
 
-![Inbound Rules](/screenshots/06-gpos/ws-firewall-inbound.png)
+![Inbound Rules](/screenshots/06/01.png)
 
 📸 **Outbound Rules**
-![Outbound Rules](/screenshots/06-gpos/ws-firewall-outbound.png)
+![Outbound Rules](/screenshots/06/02.png)
 
 ---
 
@@ -342,7 +342,7 @@ Advanced auditing enables detailed monitoring of authentication, object access, 
 
 📸 **Inbound Rules**
 
-![Inbound Rules](/screenshots/06-gpos/dc-firewall-inbound.png)
+![Inbound Rules](/screenshots/06/03.png)
 
 
 ---

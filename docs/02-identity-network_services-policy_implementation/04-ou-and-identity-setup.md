@@ -48,7 +48,7 @@ bocorp.local
 
 📸 **Active Directory Users and Computers (ADUC) Showing OU structure**
 
-![Active Directory Users and Computers (ADUC) Showing OU structure](/screenshots/02-04-oustructure.png)
+![Active Directory Users and Computers (ADUC) Showing OU structure](/screenshots/04/01.png)
 
 ### Design Principles
 
@@ -135,7 +135,7 @@ Examples:
 
 📸 **Global Groups**
 
-![Global Groups](/screenshots/02-04-gg.png)
+![Global Groups](/screenshots/04/05.png)
 
 ---
 
@@ -184,7 +184,7 @@ This ensures:
 
 📸 **Domain Local Security Groups**
 
-![Domain Local Security Groups](/screenshots/02-04-dl.png)
+![Domain Local Security Groups](/screenshots/04/02.png)
 
 ---
 
@@ -215,8 +215,8 @@ A PowerShell automation script was developed to deploy the full identity structu
 
 📸 **Script Output**
 
-![Script Output](/screenshots/02-04-script1.png)
-![Script Output](/screenshots/02-04-script2.png)
+![Script Output](/screenshots/04/03.png)
+![Script Output](/screenshots/04/04.png)
 
 ---
 

@@ -410,7 +410,7 @@ A **Problem** notification email was delivered to the shared mailbox.
 
 📸 **Problem alert email received**
 
-![Alert Email](/screenshots/22/12.png)
+![Alert Email](/screenshots/22/11.png)
 
 ---
 
@@ -424,7 +424,7 @@ After the next polling cycle, the problem resolved in Zabbix and a **Recovery** 
 
 📸 **Recovery email received**
 
-![Recovery Email](/screenshots/22/13.png)
+![Recovery Email](/screenshots/22/12.png)
 
 ---
 
@@ -444,7 +444,7 @@ Status: Sent
 
 📸 **Action log showing Sent status**
 
-![Action Log](/screenshots/22/14.png)
+![Action Log](/screenshots/22/13.png)
 
 ---
 

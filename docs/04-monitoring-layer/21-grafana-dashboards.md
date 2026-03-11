@@ -96,7 +96,7 @@ The password was changed immediately after the first login.
 
 📸 **Grafana home dashboard after first login**
 
-![Grafana home dashboard](/screenshots/21/07.png)
+![Grafana home dashboard](/screenshots/21/06.png)
 
 ---
 
@@ -113,7 +113,7 @@ sudo systemctl restart grafana-server
 
 📸 **Zabbix plugin installation**
 
-![Zabbix plugin installation](/screenshots/21/08.png)
+![Zabbix plugin installation](/screenshots/21/07.png)
 
 ### 3.2 Enable the Plugin in the UI
 
@@ -125,7 +125,7 @@ After restarting the service, the plugin was enabled through the Grafana web int
 
 📸 **Zabbix plugin enabled in Grafana**
 
-![Zabbix plugin enabled](/screenshots/21/09.png)
+![Zabbix plugin enabled](/screenshots/21/08.png)
 
 ---
 
@@ -152,7 +152,7 @@ Click **Save & Test**.
 
 📸 **Zabbix data source – Save & Test confirmation**
 
-![Zabbix data source confirmation](/screenshots/21/11.png)
+![Zabbix data source confirmation](/screenshots/21/09.png)
 
 ---
 
@@ -183,7 +183,7 @@ The correct dashboard for this lab is:
 
 📸 **Dashboard import screen**
 
-![Dashboard import](/screenshots/21/12.png)
+![Dashboard import](/screenshots/21/10.png)
 
 ---
 
@@ -205,7 +205,7 @@ The dashboard displayed real-time metrics including:
 
 📸 **Grafana – Zabbix Windows dashboard showing WS-01 metrics**
 
-![Grafana Zabbix Windows dashboard](/screenshots/21/14.png)
+![Grafana Zabbix Windows dashboard](/screenshots/21/11.png)
 
 ---
 

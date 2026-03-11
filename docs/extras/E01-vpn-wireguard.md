@@ -95,7 +95,7 @@ A new virtual machine was created in Hyper-V with the following settings:
 
 📸 **VPN-01 VM Settings**
 
-![VPN-01 VM Settings](/screenshots/E01/15.png)
+![VPN-01 VM Settings](/screenshots/E01/01.png)
 
 ---
 
@@ -155,7 +155,7 @@ A second network adapter was added to VPN-01 in Hyper-V Manager:
 
 📸 **Second Network Adapter Added**
 
-![Second Network Adapter Added](/screenshots/E01/16.png)
+![Second Network Adapter Added](/screenshots/E01/03.png)
 
 #### DHCP Configuration for eth1 (External Interface)
 
@@ -176,7 +176,7 @@ systemctl restart networking
 
 📸 **Network Interfaces Showing Both eth0 and eth1**
 
-![Network Interfaces](/screenshots/E01/17.png)
+![Network Interfaces](/screenshots/E01/04.png)
 
 ---
 
@@ -294,7 +294,7 @@ systemctl status wg-quick@wg0
 
 📸 **WireGuard Service Active**
 
-![WireGuard Service Active](/screenshots/E01/18.png)
+![WireGuard Service Active](/screenshots/E01/05.png)
 
 Verified the interface and listening port:
 
@@ -304,7 +304,7 @@ wg show
 
 📸 **wg show output**
 
-![wg show output](/screenshots/E01/19.png)
+![wg show output](/screenshots/E01/06.png)
 
 ---
 
@@ -354,7 +354,7 @@ PersistentKeepalive = 25
 
 📸 **WireGuard Client Configuration on WS-01**
 
-![WireGuard Client Configuration](/screenshots/E01/08.png)
+![WireGuard Client Configuration](/screenshots/E01/07.png)
 
 ---
 
@@ -389,7 +389,7 @@ Expected output confirms:
 
 📸 **wg show – Handshake Established**
 
-![wg show Handshake](/screenshots/E01/20.png)
+![wg show Handshake](/screenshots/E01/08.png)
 
 ---
 
@@ -425,11 +425,11 @@ Access was granted using domain credentials, confirming end-to-end functionality
 
 📸 **File Share Access Attempt Before Handshake**
 
-![File Share Access](/screenshots/E01/13.png)
+![File Share Access](/screenshots/E01/09.png)
 
 📸 **File Share Access Through VPN**
 
-![File Share Access](/screenshots/E01/14.png)
+![File Share Access](/screenshots/E01/10.png)
 
 ---
 

@@ -27,11 +27,11 @@ This server will become the authentication and directory authority for all domai
 
 📸 **Installation setup screen with edition selection**
 
-![Installation setup screen with edition selection](/screenshots/01-02-editionselection.png)
+![Installation setup screen with edition selection](/screenshots/02/01.png)
 
 📸 **First boot desktop after installation**
 
-![First boot desktop after installation](/screenshots/01-02-firstscreen.png)
+![First boot desktop after installation](/screenshots/02/02.png)
 
 ---
 
@@ -45,7 +45,7 @@ Rename the server to DC01 and restart it to apply the change.
 
 📸 **Screenshot showing changed computer name**
 
-![Screenshot showing changed computer name](/screenshots/01-02-computername.png)
+![Screenshot showing changed computer name](/screenshots/02/03.png)
 
 ---
 
@@ -62,7 +62,7 @@ Example configuration used in the lab:
 
 📸 **Network settings showing static IP and DNS config**
 
-![Network settings showing static IP and DNS config](/screenshots/01-02-networkconfig.png)
+![Network settings showing static IP and DNS config](/screenshots/02/04.png)
 
 ---
 
@@ -72,7 +72,7 @@ Install the Active Directory Domain Services role along with the required manage
 
 📸 **"Add Roles and Features Wizard" with AD DS selected**
 
-!["Add Roles and Features Wizard" with AD DS selected](/screenshots/01-02-addswizard.png)
+!["Add Roles and Features Wizard" with AD DS selected](/screenshots/02/05.png)
 
 ---
 
@@ -89,7 +89,7 @@ The server will automatically reboot after the promotion process completes.
 
 📸 **Domain configuration summary**
 
-![Domain configuration summary](/screenshots/01-02-domainconfig.png)
+![Domain configuration summary](/screenshots/02/06.png)
 
 ---
 
@@ -105,11 +105,11 @@ After reboot:
 
 📸 **Login screen showing BOCORP\Administrator**
 
-![Log in screen showing BOCORP\Administrator](/screenshots/01-02-loginscreen.png)
+![Log in screen showing BOCORP\Administrator](/screenshots/02/07.png)
 
 📸 **DNS Manager showing forward lookup zone for ```bocorp.local```**
 
-![DNS Manager showing forward lookup zone for bocorp.local](/screenshots/01-02-dnsmanager.png)
+![DNS Manager showing forward lookup zone for bocorp.local](/screenshots/02/08.png)
 
 ---
 

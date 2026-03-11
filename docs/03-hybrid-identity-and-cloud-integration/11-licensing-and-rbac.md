@@ -104,7 +104,7 @@ Microsoft 365 E3
 
 📸 **User licenses showing Microsoft 365 E3**
 
-![User License](/screenshots/11/users-license.png)
+![User License](/screenshots/11/01.png)
 
 ---
 
@@ -169,7 +169,7 @@ License Administrator
 
 📸 **License Administrator role assignment**
 
-![License Administrator role assignment](/screenshots/11/license-admin-role.png)
+![License Administrator role assignment](/screenshots/11/02.png)
 
 ---
 
@@ -195,7 +195,7 @@ Helpdesk Administrator
 
 📸 **Helpdesk Administrator role assignment**
 
-![Helpdesk Administrator role assignment](/screenshots/11/helpdesk-admin-role.png)
+![Helpdesk Administrator role assignment](/screenshots/11/03.png)
 
 ---
 
@@ -221,7 +221,7 @@ Security Administrator
 
 📸 **Security Administrator role assignment**
 
-![Security Administrator role assignment](/screenshots/11/security-admin-role.png)
+![Security Administrator role assignment](/screenshots/11/04.png)
 
 ---
 
@@ -248,7 +248,7 @@ Security Operator
 
 📸 **Security Operator role assignment**
 
-![Security Operator role assignment](/screenshots/11/security-operator-role.png)
+![Security Operator role assignment](/screenshots/11/05.png)
 
 ---
 
@@ -259,8 +259,6 @@ This implementation enforces:
 - Principle of Least Privilege  
 - Role separation  
 - Administrative boundary control  
-
-Global Administrator is no longer required for daily operations.
 
 ---
 

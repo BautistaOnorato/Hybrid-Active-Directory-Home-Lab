@@ -89,7 +89,7 @@ Custom setup allows:
 
 📸 **User Sign-In Method Selection**
 
-![User Sign-In Method Selection](/screenshots/09/user-signin.png)
+![User Sign-In Method Selection](/screenshots/09/01.png)
 
 ---
 
@@ -126,7 +126,7 @@ The wizard automatically:
 
 📸 **AD DS Connection**
 
-![AD DS Connection](/screenshots/09/connect-directories.png)
+![AD DS Connection](/screenshots/09/02.png)
 
 ---
 
@@ -144,7 +144,7 @@ Enabled synchronization only for:
 
 📸 **OU Filtering**
 
-![OU Filtering](/screenshots/09/ou-filtering.png)
+![OU Filtering](/screenshots/09/03.png)
 
 ---
 
@@ -182,7 +182,7 @@ Entra Connect automatically initiated the first synchronization cycle.
 
 📸 **Configuration Complete**
 
-![Configuration Complete](/screenshots/09/sync.png)
+![Configuration Complete](/screenshots/09/04.png)
 
 ---
 
@@ -205,7 +205,7 @@ Confirm:
 
 📸 **Synced Users View**
 
-![Synced Users](/screenshots/09/users-sync.png)
+![Synced Users](/screenshots/09/05.png)
 ---
 
 ### Test Cloud Authentication
@@ -228,7 +228,7 @@ Result:
 
 📸 **Microsoft 365 Login Success**
 
-![Microsoft 365 Login Success](/screenshots/09/cm-login.png)
+![Microsoft 365 Login Success](/screenshots/09/06.png)
 
 ---
 

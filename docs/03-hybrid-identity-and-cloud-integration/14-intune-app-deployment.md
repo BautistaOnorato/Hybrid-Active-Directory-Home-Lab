@@ -71,7 +71,7 @@ Device-based security group containing `WS-01`
 
 📸 **Office Applications**
 
-![Office Applications](/screenshots/14/office.png)
+![Office Applications](/screenshots/14/01.png)
 
 ---
 
@@ -92,7 +92,7 @@ Simulate deployment of a third-party enterprise utility using Win32 packaging.
 
 📸 **7zip v25.01 Win32 packaging**
 
-![7zip v25.01 Win32 packaging](/screenshots/14/7zip-old-win32.png)
+![7zip v25.01 Win32 packaging](/screenshots/14/02.png)
 
 ---
 
@@ -146,7 +146,7 @@ Device-based security group
 
 📸 **7zip v25.01 intsalled**
 
-![7zip v25.01 intsalled](/screenshots/14/7zip-old.png)
+![7zip v25.01 intsalled](/screenshots/14/03.png)
 
 ---
 
@@ -170,11 +170,11 @@ Simulate enterprise version upgrade governance.
 
 📸 **Supersedence Settings**
 
-![Supersedence Settings](/screenshots/14/supersedence.png)
+![Supersedence Settings](/screenshots/14/04.png)
 
 📸 **7zip v25.01 superseded**
 
-![7zip v25.01 superseded](/screenshots/14/7zip-old-superseded.png)
+![7zip v25.01 superseded](/screenshots/14/05.png)
 
 ---
 
@@ -196,7 +196,7 @@ Supersedence enables:
 
 📸 **7zip v26.00 installed**
 
-![7zip v26.00 installed](/screenshots/14/7zip-new.png)
+![7zip v26.00 installed](/screenshots/14/06.png)
 
 ---
 
@@ -242,7 +242,7 @@ Company Portal enables:
 
 📸 **Company Portal Installed**
 
-![Company Portal Installed](/screenshots/14/company-portal.png)
+![Company Portal Installed](/screenshots/14/07.png)
 
 ---
 
@@ -263,7 +263,7 @@ Simulate optional enterprise-approved software deployment using self-service mod
 
 📸 **Google Chrome Enterprise Win32 Packaging**
 
-![Google Chrome Enterprise Win32 Packaging](/screenshots/14/google-win32.png)
+![Google Chrome Enterprise Win32 Packaging](/screenshots/14/08.png)
 
 ---
 
@@ -320,7 +320,7 @@ Device-based security group
 
 📸 **Google appears in Company Portal**
 
-![Google appears in Company Portal](/screenshots/14/company-portal-google.png)
+![Google appears in Company Portal](/screenshots/14/09.png)
 
 ---
 
@@ -348,7 +348,7 @@ Validate self-service application deployment.
 
 📸 **Google Chrome Enterprise Installed**
 
-![Google Chrome Enterprise Installed](/screenshots/14/google.png)
+![Google Chrome Enterprise Installed](/screenshots/14/10.png)
 
 ---
 
@@ -388,7 +388,7 @@ Remote uninstall enables:
 
 📸 **Google Chrome Enterprise Uninstalled**
 
-![Google Chrome Enterprise Uninstalled](/screenshots/14/google-uninstall.png)
+![Google Chrome Enterprise Uninstalled](/screenshots/14/11.png)
 
 ---
 

@@ -32,7 +32,7 @@ After installation, the DHCP service was configured and authorized in Active Dir
 
 📸 **DHCP Role Installation Summary**
 
-![DHCP Role Installation Summary](/screenshots/02-05-dhcpinstall.png)
+![DHCP Role Installation Summary](/screenshots/05/01.png)
 
 ---
 
@@ -105,7 +105,7 @@ Using a shorter lease duration in a lab environment allows:
 
 📸 **DHCP Scope and Lease configuration**
 
-![DHCP Scope and Lease configuration](/screenshots/02-05-dhcpscope.png)
+![DHCP Scope and Lease configuration](/screenshots/05/02.png)
 
 ---
 
@@ -119,17 +119,17 @@ After configuration, both workstations were checked to validate that the DHCP se
 
 📸 **WS-01 Validation**
 
-![WS-01 Validation](/screenshots/02-05-dhcpws01.png)
-![WS-01 Validation](/screenshots/02-05-dhcpws01a.png)
+![WS-01 Validation](/screenshots/05/03.png)
+![WS-01 Validation](/screenshots/05/04.png)
 
 📸 **WS-02 Validation**
 
-![WS-02 Validation](/screenshots/02-05-dhcpws02.png)
-![WS-02 Validation](/screenshots/02-05-dhcpws02a.png)
+![WS-02 Validation](/screenshots/05/05.png)
+![WS-02 Validation](/screenshots/05/06.png)
 
 📸 **DHCP Address Leases Showing Both Clients**
 
-![DHCP Address Leases Showing Both Clients](/screenshots/02-05-dhcpleases.png)
+![DHCP Address Leases Showing Both Clients](/screenshots/05/07.png)
 
 ---
 
