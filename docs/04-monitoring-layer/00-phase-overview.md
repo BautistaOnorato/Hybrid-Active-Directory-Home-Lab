@@ -6,11 +6,9 @@
 
 Implement a centralized monitoring and observability layer for the entire lab infrastructure.
 
-This phase focuses on deploying a dedicated monitoring server, collecting telemetry from Windows servers and clients, visualizing system health, and configuring alerting mechanisms for operational visibility.
+This phase focuses on deploying a dedicated monitoring server, collecting telemetry from Windows servers and clients, visualizing infrastructure health through dashboards, and configuring an alerting pipeline for operational visibility.
 
-The goal is to simulate a real-world enterprise monitoring stack where infrastructure health, performance metrics, and security-related events can be observed and acted upon in real time.
-
-By introducing monitoring capabilities, the lab transitions from a deployed infrastructure into an **actively monitored production-like environment**, enabling proactive detection of failures, performance issues, and abnormal system behavior.
+The goal is to transition the lab from a deployed infrastructure into an actively monitored environment where failures, performance degradation, and abnormal behavior are detected and communicated in real time.
 
 ---
 
@@ -18,14 +16,15 @@ By introducing monitoring capabilities, the lab transitions from a deployed infr
 
 This phase includes:
 
-- Deploying a dedicated Linux monitoring server (MON-01)
+- Deploying a dedicated Debian Linux monitoring server (MON-01)
 - Installing and configuring the Zabbix monitoring platform
-- Deploying Zabbix agents on Windows servers and workstations
-- Integrating Windows hosts with the monitoring server
-- Collecting system metrics, service status, and performance data
-- Visualizing infrastructure health using Grafana dashboards
-- Configuring alerting mechanisms for system failures and anomalies
-- Validating monitoring coverage across the environment
+- Deploying Zabbix Agent 2 on all Windows hosts via GPO
+- Registering DC-01, WS-01, and WS-02 in the Zabbix web interface
+- Collecting system metrics, service status, and performance data from all monitored hosts
+- Deploying Grafana and connecting it to the Zabbix backend
+- Building infrastructure health dashboards in Grafana
+- Configuring an alerting pipeline using a custom Webhook Media Type and Microsoft Graph API
+- Validating alert delivery for both problem and recovery events
 
 ---
 
@@ -33,101 +32,50 @@ This phase includes:
 
 ### Monitoring Server
 
-- **MON-01 (Linux)**
-- Zabbix Server
-- Zabbix Web Interface
-- Zabbix Database
-- Zabbix Agent
+- **MON-01** – Debian 13 (Trixie), static IP `10.10.10.20`
+- Zabbix Server 7.0 LTS
+- Zabbix Frontend (Apache)
+- MariaDB (Zabbix backend database)
+- Zabbix Agent 2 (self-monitoring)
+- Grafana OSS
 
-The monitoring server acts as the **central telemetry collector**, aggregating metrics and events from all monitored systems.
+### Monitored Hosts
 
----
+| Host | Role | IP |
+|------|------|----|
+| DC-01 | Domain Controller | 10.10.10.10 (static) |
+| WS-01 | Workstation | DHCP (resolved via DNS) |
+| WS-02 | Workstation | DHCP (resolved via DNS) |
 
-### Monitoring Platform
+### Alerting Pipeline
 
-**Zabbix**
-
-Responsible for:
-
-- Infrastructure monitoring
-- Agent-based metric collection
-- Service availability checks
-- Alert generation
-- Historical metric storage
-- Trigger-based anomaly detection
-
-Zabbix will monitor:
-
-- Domain Controller (DC-01)
-- Windows workstations (WS-01, WS-02)
-- Critical services and system resources
-
----
-
-### Visualization Layer
-
-**Grafana**
-
-Grafana provides a modern visualization layer for monitoring data by:
-
-- Connecting to the Zabbix data source
-- Creating dashboards for system performance
-- Displaying infrastructure health indicators
-- Enabling easier operational visibility
-
-Dashboards will include metrics such as:
-
-- CPU utilization
-- Memory consumption
-- Disk usage
-- Network activity
-- Service availability
-
----
-
-### Alerting & Operational Visibility
-
-Alerting mechanisms will be configured to detect and notify about:
-
-- Host availability failures
-- High CPU or memory usage
-- Disk capacity thresholds
-- Critical service failures
-- Agent communication issues
-
-This allows the lab to simulate **real-world operations monitoring**, where administrators are notified about infrastructure problems before they impact users.
+- Azure App Registration (`Zabbix-MailSender`) for OAuth 2.0 authentication
+- Microsoft Graph API (`/sendMail`) for email delivery
+- Zabbix Webhook Media Type with custom JavaScript
+- Shared mailbox (`zabbix-alerts@bocorp.online`) for centralized alert reception
 
 ---
 
 ## 🔐 Architectural Design Principles
 
-The monitoring implementation follows modern infrastructure observability principles:
+This phase follows modern infrastructure observability principles:
 
-- **Centralized Monitoring**  
-  All systems report metrics to a single monitoring platform.
-
-- **Agent-Based Telemetry Collection**  
-  Hosts provide detailed performance and service data through installed agents.
-
-- **Separation of Monitoring Infrastructure**  
-  Monitoring services run on a dedicated Linux server independent of the Windows domain.
-
-- **Visualization-Driven Operations**  
-  Dashboards provide quick operational insight into infrastructure health.
-
-- **Proactive Alerting**  
-  Threshold-based triggers detect issues before they escalate into outages.
+- The monitoring stack runs on a dedicated Linux server independent of the Windows domain, ensuring monitoring remains operational even if the domain is degraded
+- Zabbix Agent 2 is deployed via GPO to maintain consistency with the existing endpoint management model
+- Workstations are registered in Zabbix using DNS names instead of static IPs to handle dynamic DHCP lease changes gracefully
+- Grafana is deployed as a dedicated visualization layer on top of Zabbix, reflecting common enterprise monitoring architectures where multiple backends feed a single dashboard platform
+- Alert delivery uses OAuth 2.0 with Microsoft Graph API instead of legacy SMTP authentication, which has been deprecated in modern Exchange Online tenants
 
 ---
 
 ## 📂 Files Included
 
-- `17-monitoring-server-deployment.md` – Linux server deployment for monitoring
-- `18-zabbix-installation.md` – Zabbix server installation and initial configuration
-- `19-zabbix-agent-deployment.md` – Zabbix agent installation on Windows hosts
-- `20-host-monitoring-configuration.md` – Monitoring configuration for domain systems
-- `21-grafana-dashboards.md` – Grafana integration and dashboard creation
-- `22-alerting-configuration.md` – Monitoring triggers and alerting setup
+- [`17-monitoring-server-deployment.md`](/docs/04-monitoring-layer/17-monitoring-server-deployment.md) – Debian 13 installation and MON-01 network configuration
+- [`18-zabbix-installation.md`](/docs/04-monitoring-layer/18-zabbix-installation.md) – Zabbix Server, frontend, and MariaDB installation and configuration
+- [`19-zabbix-agent-deployment.md`](/docs/04-monitoring-layer/19-zabbix-agent-deployment.md) – Zabbix Agent 2 deployment via GPO on all Windows hosts
+- [`20-host-monitoring-configuration.md`](/docs/04-monitoring-layer/20-host-monitoring-configuration.md) – Host registration and monitoring template assignment in Zabbix
+- [`21-grafana-dashboards.md`](/docs/04-monitoring-layer/21-grafana-dashboards.md) – Grafana installation, Zabbix plugin configuration, and dashboard import
+- [`22-alerting-configuration.md`](/docs/04-monitoring-layer/22-alerting-configuration.md) – Webhook Media Type, Trigger Action, and end-to-end alert validation
 
 ---
 
@@ -135,18 +83,17 @@ The monitoring implementation follows modern infrastructure observability princi
 
 By completing this phase:
 
-- **Centralized Infrastructure Monitoring Implemented:**  
-  All servers and workstations are monitored from a single platform.
+- **Centralized Infrastructure Monitoring Implemented:**
+  All Windows servers and workstations report metrics to a single Zabbix platform running on a dedicated Linux server.
 
-- **Real-Time Visibility Achieved:**  
-  Administrators gain immediate insight into system health and performance.
+- **Real-Time Visibility Achieved:**
+  Grafana dashboards provide live visibility into CPU utilization, memory consumption, disk usage, network activity, and system uptime across all monitored hosts.
 
-- **Operational Alerting Enabled:**  
-  Monitoring triggers generate alerts for failures and abnormal conditions.
+- **Operational Alerting Enabled:**
+  Zabbix triggers detect failures and abnormal conditions and deliver problem and recovery notifications to a shared mailbox via Microsoft Graph API.
 
-- **Historical Metrics Collected:**  
-  System performance data is stored for analysis and troubleshooting.
+- **Historical Metrics Collected:**
+  System performance data is stored in MariaDB and available for trend analysis and troubleshooting.
 
-- **Enterprise Monitoring Architecture Simulated:**  
-  The lab environment now includes a dedicated observability stack comparable to real production environments.
-  
+- **Enterprise Monitoring Architecture Simulated:**
+  The lab environment now includes a dedicated observability stack with agent-based telemetry collection, a modern visualization layer, and a secure OAuth 2.0 alerting pipeline.

@@ -1,51 +1,70 @@
-# 16 – Azure Backup Configuration (On-Premises File Shares & System State)
+# 16 – Azure Backup
 
 ---
 
 ## 🎯 Objective
 
-Implement Azure Backup to protect on-premises workloads hosted on **DC-01**, including:
+Implement Azure Backup to protect on-premises workloads hosted on DC-01, including file shares and System State.
 
-- File shares  
-- System State (Domain Controller protection)
+This section covers:
 
-This configuration provides cloud-based backup, recovery validation, alerting, and operational monitoring.
-
----
-
-## 🏗 Environment Overview
-
-### 🖥 On-Prem Server
-
-- **DC-01**
-  - Domain Controller
-  - Hosts file shares
-
-### ☁ Azure Components
-
-- **Resource Group:** `RG-Bocorp-Backup`
-- **Recovery Services Vault:** `RSV-Bocorp-Backup`
-- **Key Vault:** `KV-Bocorp-Backup`
-- **Action Group:** `AG-Bocorp-Backup`
-- **Shared Mailbox:** Backup Shared Mailbox
+- Creating the Azure resource group and Recovery Services Vault
+- Installing and registering the MARS Agent on DC-01
+- Securing backup credentials using Azure Key Vault
+- Configuring a backup policy for on-premises file shares
+- Configuring a backup policy for DC-01 System State
+- Validating file share recovery through a restore simulation
+- Configuring monitoring and alerting for backup job failures
 
 ---
 
-## 1️⃣ Azure Resource Preparation
+## 🏗 Architecture Overview
+
+```
+DC-01 (On-Premises)
+File Shares + System State
+        ↓
+MARS Agent
+        ↓
+Recovery Services Vault (RSV-Bocorp-Backup)
+        ↓
+├── File Share Backup Policy (daily)
+└── System State Backup Policy (scheduled)
+        ↓
+Log Analytics Workspace (LAW-Bocorp-Backup)
+        ↓
+Alert Rule (KQL) → Action Group → Shared Mailbox
+```
+
+### Azure Components
+
+| Resource | Name |
+|----------|------|
+| Resource Group | `RG-Bocorp-Backup` |
+| Recovery Services Vault | `RSV-Bocorp-Backup` |
+| Key Vault | `KV-Bocorp-Backup` |
+| Log Analytics Workspace | `LAW-Bocorp-Backup` |
+| Action Group | `AG-Backup-Fail` |
+| Alert Rule | `Alert-Backup-Job-Failure` |
+
+---
+
+## 1️⃣ Create Azure Resources
 
 ### 1.1 Create Resource Group
 
-Created a dedicated resource group:
+Create a dedicated resource group to logically isolate all backup-related resources:
 
 ```
-RG-Bocorp-Backup
+portal.azure.com → Resource groups → Create
 ```
 
-**Purpose:**
+| Setting | Value |
+|---------|-------|
+| Name | `RG-Bocorp-Backup` |
+| Region | (lab deployment region) |
 
-- Logical isolation of backup resources
-
-📸 **Resource Group**
+📸 **Resource group created**
 
 ![Resource Group](/screenshots/16/01.png)
 
@@ -53,306 +72,281 @@ RG-Bocorp-Backup
 
 ### 1.2 Create Recovery Services Vault
 
-Created:
-
 ```
-RSV-Bocorp-Backup
+portal.azure.com → Recovery Services vaults → Create
 ```
 
-**Configuration:**
-
-- Region aligned with lab deployment
-- Standard storage redundancy
-
-**Purpose:**
-
-- Centralized backup management
-- Policy definition
-- Recovery operations
+| Setting | Value |
+|---------|-------|
+| Name | `RSV-Bocorp-Backup` |
+| Resource Group | `RG-Bocorp-Backup` |
+| Region | (lab deployment region) |
 
 ---
 
-## 2️⃣ Backup Infrastructure Configuration
+## 2️⃣ Install and Register the MARS Agent
 
-### 2.1 Install and Configure MARS Agent on DC-01
+The Microsoft Azure Recovery Services (MARS) Agent must be installed on DC-01 to establish secure communication between the on-premises server and the Recovery Services Vault.
 
-Steps performed:
+### 2.1 Download and Install the MARS Agent
 
-1. Downloaded Microsoft Azure Recovery Services (MARS) Agent  
-2. Installed MARS Agent on DC-01  
-3. Registered DC-01 with the Recovery Services Vault  
+Download the MARS Agent installer from the Recovery Services Vault:
 
-This established secure communication between DC-01 and Azure Backup.
+```
+RSV-Bocorp-Backup → Backup → Where is your workload running? On-Premises
+→ What do you want to backup? Files and folders / System State
+→ Download Agent
+```
 
-📸 **MARS Agent Setup**
+Run the installer on **DC-01** and complete the setup wizard.
+
+📸 **MARS Agent setup on DC-01**
 
 ![MARS Agent Setup](/screenshots/16/02.png)
 
-📸 **Server Registration**
+---
+
+### 2.2 Register DC-01 with the Vault
+
+After installation, register DC-01 with the Recovery Services Vault using the vault credentials file downloaded from the portal.
+
+📸 **DC-01 registered with the Recovery Services Vault**
 
 ![Server Registration](/screenshots/16/03.png)
 
 ---
 
-### 2.2 Credential Protection via Key Vault
+## 3️⃣ Secure Backup Credentials with Key Vault
 
-Created:
+A dedicated Key Vault was created to securely store the backup credentials used by the Recovery Services Vault.
 
 ```
-KV-Bocorp-Backup
+portal.azure.com → Key vaults → Create
 ```
 
-**Purpose:**
+| Setting | Value |
+|---------|-------|
+| Name | `KV-Bocorp-Backup` |
+| Resource Group | `RG-Bocorp-Backup` |
 
-- Secure storage of backup credentials
-- Protection of vault registration secrets
+After creation, assign the **Key Vault Secrets Officer** role to the Recovery Services Vault managed identity to allow it to access the stored credentials:
 
-**Configuration:**
+```
+KV-Bocorp-Backup → Access control (IAM) → Add role assignment
+→ Key Vault Secrets Officer → Assign to RSV-Bocorp-Backup (managed identity)
+```
 
-- Assigned permissions allowing the Recovery Services Vault to access required credentials
-
-📸 **Key Vault Secrets Officer role assigned to Recovery Services Vault**
+📸 **Key Vault Secrets Officer role assigned to the Recovery Services Vault**
 
 ![Key Vault Secrets Officer role](/screenshots/16/04.png)
 
-📸 **Key Vault Overview**
+📸 **Key Vault overview**
 
 ![Key Vault Overview](/screenshots/16/05.png)
 
 ---
 
-## 3️⃣ File Share Backup Configuration
+## 4️⃣ Configure File Share Backup
 
-### 3.1 Configure Backup Policy
+### 4.1 Configure the Backup Policy
 
-Defined backup policy for:
+On **DC-01**, open the **MARS Agent** console and configure the backup schedule:
 
-- On-prem file shares hosted on DC-01
+```
+Schedule a Backup → Add Items → select departmental share folders
+```
 
-**Policy Configuration:**
+| Setting | Value |
+|---------|-------|
+| Backup frequency | Daily |
+| Retention range | (defined per policy) |
+| Backup window | (scheduled during off-hours) |
 
-- Daily backups
-- Defined retention period
-- Scheduled backup window
-
-📸 **Backup Selection**
+📸 **Backup item selection**
 
 ![Backup Selection](/screenshots/16/06.png)
 
-📸 **Backup Schedule**
+📸 **Backup schedule configured**
 
 ![Backup Schedule](/screenshots/16/07.png)
 
-📸 **Retention Policy**
+📸 **Retention policy configured**
 
-![Retention Policy  ](/screenshots/16/08.png)
+![Retention Policy](/screenshots/16/08.png)
 
-📸 **Backup Confirmation**
+📸 **Backup policy confirmation**
 
 ![Backup Confirmation](/screenshots/16/09.png)
+
 ---
 
-### 3.2 Initial Backup Execution
+### 4.2 Run Initial Backup
 
-Performed manual **Back Up Now** to trigger initial backup.
+Trigger the first backup manually to establish an initial recovery point:
 
-**Validation:**
+```
+MARS Agent console → Backup Now
+```
 
-- Backup job completed successfully
-- Recovery points visible in Azure Portal
-- Status: **Completed**
+Confirm the backup job completes successfully and the recovery point is visible in the Azure Portal.
 
-📸 **First Backup**
+📸 **First backup completed successfully**
 
 ![First Backup](/screenshots/16/10.png)
 
 ---
 
-## 4️⃣ Recovery Validation – File Shares
+## 5️⃣ Validate File Share Recovery
 
-### 4.1 Recovery Simulation
+A recovery simulation was performed to confirm that the restore workflow functions correctly end-to-end.
 
-Simulated recovery scenario:
+### Recovery Steps
 
-1. Created test file inside `/Finance/`
-2. Executed backup
-3. Deleted the file
-4. Restored using:
-   - **Mount recovery point as new volume** method
-5. Copied required file back to original location
+1. Created a test file inside the `/Finance/` share folder
+2. Executed a backup to capture the test file in a recovery point
+3. Deleted the test file
+4. Initiated a restore from the MARS Agent console using the **Mount recovery point as new volume** method
+5. Copied the restored file back to its original location
 
-**Validation Result:**
-
-- File restored successfully
-- Data integrity verified
-- Recovery workflow confirmed functional
-
-📸 **Recovery Simulation**
+📸 **File share recovery simulation**
 
 ![Recovery Simulation](/screenshots/16/11.png)
 
----
-
-## 5️⃣ System State Backup Configuration
-
-### 5.1 Enable System State Protection
-
-Configured MARS Agent to include:
-
-- System State backup of DC-01
+The test file was restored successfully with data integrity verified.
 
 ---
 
-### 5.2 Execute System State Backup
+## 6️⃣ Configure System State Backup
 
-Performed manual System State backup.
+System State backup protects the Domain Controller configuration, including Active Directory, the SYSVOL, boot files, and the registry. This enables full DC recovery if required.
 
-**Validation:**
+### 6.1 Configure the Backup Policy
 
-- Backup job completed successfully
-- System State recovery point available in Azure
+In the **MARS Agent** console, add a separate System State backup schedule:
 
-This enables full Domain Controller recovery if required.
+```
+Schedule a Backup → Add Items → System State
+```
 
-📸 **System State Backup Schedule**
+📸 **System State backup schedule configured**
 
 ![System State Backup Schedule](/screenshots/16/12.png)
 
-📸 **System State Retention Policy**
+📸 **System State retention policy configured**
 
 ![System State Retention Policy](/screenshots/16/13.png)
 
-📸 **System State Backup Confirmation**
+📸 **System State backup policy confirmation**
 
 ![System State Backup Confirmation](/screenshots/16/14.png)
 
 ---
 
-## 6️⃣ Monitoring & Alerting
+### 6.2 Run Initial System State Backup
+
+Trigger the first System State backup manually:
+
+```
+MARS Agent console → Backup Now → System State
+```
+
+Confirm the backup job completes successfully and the System State recovery point is visible in the Azure Portal.
 
 ---
 
-### 6.1 Create Shared Mailbox (Microsoft 365)
+## 7️⃣ Configure Monitoring and Alerting
 
-Created a dedicated shared mailbox for backup alerts.
+### 7.1 Create Shared Mailbox for Backup Alerts
 
-📸 **Shared Mailbox for Backup Alerts**
+A dedicated shared mailbox was created in Microsoft 365 to receive all backup alert notifications, avoiding dependency on individual user accounts.
+
+📸 **Shared mailbox for backup alerts**
 
 ![Shared Mailbox for Backup Alerts](/screenshots/16/15.png)
 
-**Purpose:**
-
-- Centralized operational notifications  
-- Enterprise-aligned alert handling  
-- Avoid dependency on individual user accounts  
-
 ---
 
-### 6.2 Create Action Group
-
-Created:
+### 7.2 Create Action Group
 
 ```
-AG-Backup-Fail
+portal.azure.com → Monitor → Alerts → Action groups → Create
 ```
 
-**Configuration:**
+| Setting | Value |
+|---------|-------|
+| Name | `AG-Backup-Fail` |
+| Resource Group | `RG-Bocorp-Backup` |
+| Notification type | Email |
+| Email recipient | Backup shared mailbox |
 
-- Email notification targeting the backup shared mailbox  
-- Standard alert processing configuration  
+A test notification was sent to confirm delivery to the shared mailbox.
 
-**Validation:**
-
-- Test notification successfully delivered  
-
-📸 **Action Groups**
+📸 **Action group configured**
 
 ![Action Groups](/screenshots/16/16.png)
 
 ---
 
-### 6.3 Log Analytics Workspace Integration
+### 7.3 Create Log Analytics Workspace
 
-To enable advanced monitoring and reliable alerting, a dedicated Log Analytics workspace was deployed.
-
-#### Create Log Analytics Workspace
-
-Created:
+A dedicated Log Analytics Workspace was deployed to enable advanced KQL-based alerting, providing more reliable and flexible monitoring than the built-in vault alerts.
 
 ```
-LAW-Bocorp-Backup
+portal.azure.com → Log Analytics workspaces → Create
 ```
 
-Assigned to:
+| Setting | Value |
+|---------|-------|
+| Name | `LAW-Bocorp-Backup` |
+| Resource Group | `RG-Bocorp-Backup` |
 
-```
-RG-Bocorp-Backup
-```
-
-**Purpose:**
-
-- Centralized log ingestion  
-- Advanced KQL-based alerting  
-- Enterprise-grade monitoring architecture  
-- Better reliability compared to built-in vault alerts 
-
-📸 **LAW-Bocorp-Backup**
+📸 **Log Analytics Workspace created**
 
 ![LAW-Bocorp-Backup](/screenshots/16/17.png)
 
 ---
 
-#### Configure Diagnostic Settings on Recovery Services Vault
+### 7.4 Configure Diagnostic Settings on the Recovery Services Vault
 
-Navigated to:
-
-```
-RSV-Bocorp-Backup → Monitoring → Diagnostic settings
-```
-
-Created new diagnostic setting:
+Send backup logs from the Recovery Services Vault to the Log Analytics Workspace:
 
 ```
-DS-Bocorp-Backup
+RSV-Bocorp-Backup → Monitoring → Diagnostic settings → Add diagnostic setting
 ```
 
-**Logs Enabled:**
+| Setting | Value |
+|---------|-------|
+| Name | `DS-Bocorp-Backup` |
+| Destination | Send to Log Analytics Workspace (`LAW-Bocorp-Backup`) |
 
-The following categories were configured:
+Enable the following log categories:
 
-- Azure Backup Reporting Data  
-- Core Azure Backup Data  
-- Addon Azure Backup Job Data  
-- Addon Azure Backup Alert Data  
-- Azure Backup Operations  
-
-**Destination:**
-
-- **Send to Log Analytics Workspace**
-- Workspace selected: `LAW-Bocorp-Backup`
-
-This configuration ensures that all backup job events, operational logs, and alert data are centralized inside Log Analytics for querying and monitoring.
+| Log Category |
+|-------------|
+| Azure Backup Reporting Data |
+| Core Azure Backup Data |
+| Addon Azure Backup Job Data |
+| Addon Azure Backup Alert Data |
+| Azure Backup Operations |
 
 ---
 
-### 6.4 Configure Custom Log-Based Alert Rule
-
-Configured alert rule:
+### 7.5 Create Alert Rule
 
 ```
-Alert-Backup-Job-Failure
+portal.azure.com → Monitor → Alerts → Alert rules → Create
 ```
 
-The alert uses a **custom KQL query** against Log Analytics.
+**Alert Rule Name:** `Alert-Backup-Job-Failure`
 
----
+#### Condition
 
-#### Condition Configuration
+| Setting | Value |
+|---------|-------|
+| Signal type | Custom log search |
+| Query type | Aggregated logs |
 
-- **Signal:** Custom log search  
-- **Query type:** Aggregated logs  
-
-#### 🔎 Search Query (KQL)
+**KQL Query:**
 
 ```kql
 AddonAzureBackupAlerts
@@ -360,95 +354,65 @@ AddonAzureBackupAlerts
 | where AlertStatus == "Active"
 ```
 
-#### Aggregation Settings
+| Setting | Value |
+|---------|-------|
+| Measure | Table rows |
+| Aggregation type | Count |
+| Aggregation granularity | 5 minutes |
+| Operator | Greater than |
+| Threshold value | 0 |
+| Frequency of evaluation | Every 5 minutes |
 
-- **Measure:** Table rows  
-- **Aggregation type:** Count  
-- **Aggregation granularity:** 5 minutes  
-- **Operator:** Greater than  
-- **Threshold value:** 0  
-- **Frequency of evaluation:** Every 5 minutes  
+> The threshold is set to `0` so that any single Critical and Active alert triggers an immediate notification. This ensures backup failures are never silently missed.
 
-#### Why Threshold = 0?
+#### Actions and Details
 
-The logic is:
+| Setting | Value |
+|---------|-------|
+| Action group | `AG-Backup-Fail` |
+| Email subject | `Backup failure` |
+| Severity | 0 – Critical |
 
-> If at least one Critical and Active alert exists → trigger notification.
-
-This guarantees immediate alerting when a backup failure occurs.
-
----
-
-#### Actions
-
-- **Action Group:** `AG-Backup-Fail`  
-- **Email Subject:** `Backup failure`
-
----
-
-#### Details
-
-- **Severity:** 0 – Critical  
-
-📸 **Alert Configuration**
+📸 **Alert rule configuration**
 
 ![Alert Configuration](/screenshots/16/18.png)
+
 ![Alert Configuration](/screenshots/16/19.png)
+
 ![Alert Configuration](/screenshots/16/20.png)
 
 ---
 
-## 6.5 Alert Validation (Failure Simulation)
+## 🔎 Validation
 
-Performed controlled backup failure testing to validate the new monitoring architecture.
+A controlled backup failure was triggered to validate the full alerting pipeline end-to-end.
 
 ### Validation Steps
 
-1. Triggered backup failure scenario  
-2. Verified logs populated in Log Analytics  
-3. Confirmed alert rule evaluation  
-4. Alert state changed to **Fired**  
-5. Email notification delivered to shared mailbox  
+1. Triggered a backup failure scenario on DC-01
+2. Confirmed logs populated in `LAW-Bocorp-Backup` via the Azure Portal
+3. Confirmed the KQL query returned results for the failure event
+4. Confirmed the alert rule state changed to **Fired**
+5. Confirmed the email notification was delivered to the backup shared mailbox
 
-### Result
-
-- Log ingestion working correctly  
-- KQL query returning expected results  
-- Alert rule triggering reliably  
-- Email notification confirmed  
-
-📸 **Alert Fired**
+📸 **Alert fired in Azure Monitor**
 
 ![Alert Fired](/screenshots/16/21.png)
 
-📸 **Alert Email**
+📸 **Alert notification email received**
 
 ![Alert Email](/screenshots/16/22.png)
 
 ---
 
-## 7️⃣ Final Validation Checklist
-
-| Component | Status |
-|------------|--------|
-| Resource Group created | ✅ |
-| Recovery Services Vault operational | ✅ |
-| MARS Agent installed on DC-01 | ✅ |
-| DC-01 registered in vault | ✅ |
-| Key Vault configured | ✅ |
-| File share backup working | ✅ |
-| System State backup working | ✅ |
-| Recovery test successful | ✅ |
-| Alerting configured | ✅ |
-| Failure notification validated | ✅ |
-
----
-
 ## ✅ Outcome
 
-By completing this configuration:
+After completing this section:
 
-- On-prem file shares are protected in Azure.
-- Domain Controller system state is backed up securely.
-- Recovery processes are validated.
-- Backup failures trigger automatic notifications.
+- DC-01 is registered with `RSV-Bocorp-Backup` and protected by the MARS Agent.
+- On-premises file shares are backed up daily with a validated recovery workflow.
+- DC-01 System State is backed up on a scheduled basis, enabling full Domain Controller recovery.
+- Backup credentials are secured in `KV-Bocorp-Backup`.
+- Backup job logs are ingested into `LAW-Bocorp-Backup` via diagnostic settings.
+- KQL-based alert rule detects backup failures within 5 minutes and notifies the backup shared mailbox.
+- The full alerting pipeline was validated end-to-end through a controlled failure simulation.

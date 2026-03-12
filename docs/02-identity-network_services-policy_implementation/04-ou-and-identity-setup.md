@@ -1,219 +1,160 @@
-# 04 - OU and Identity Setup
+# 04 – OU and Identity Setup
 
 ---
 
 ## 🎯 Objective
 
-Design and deploy a structured Active Directory identity model that will:
+Design and deploy a structured Active Directory identity model for the `bocorp.local` domain.
 
-- Implement a scalable Organizational Unit hierarchy
-- Establish a structured Security Group model following AGDLP
-- Separate administrative, departmental, and resource objects
-- Automate user and group creation using PowerShell
-- Prepare the environment for GPO deployment and file server permissions
+This section covers:
+
+- Designing and creating the Organizational Unit (OU) hierarchy
+- Creating Global and Domain Local security groups following the AGDLP model
+- Importing users from a CSV file and placing them in their corresponding OUs
+- Automating the full identity deployment using a PowerShell script
 
 ---
 
-## 1. Organizational Unit (OU) Structure
+## 🏗 Architecture Overview
 
-The Active Directory structure was designed following enterprise best practices, focusing on scalability, security, administrative delegation, and security boundaries.
-
-The implemented hierarchy in **bocorp.local** is:
+The identity model is built around two core principles: **organizational clarity** through a structured OU hierarchy, and **role-based access control** through the AGDLP security group model.
 
 ```
 bocorp.local
 ├── _Admin
 │   ├── Admin-Users
-│   ├── Service-Accounts
+│   └── Service-Accounts
 ├── _Disabled-Objects
 ├── _Groups
 │   ├── Global
-│   ├── DomainLocal
-├── Builtin
-├── Computers
+│   └── DomainLocal
 ├── Departments
 │   ├── Finance
 │   ├── Human Resources
 │   ├── IT
 │   │   ├── ITSecurity
-│   │   ├── ITSupport
-│   ├── Sales
-├── Domain Controllers
-├── ForeignSecurityPrincipals
-├── ManagedServiceAccounts
+│   │   └── ITSupport
+│   └── Sales
 ├── Servers
-├── Users
-├── Workstations
+└── Workstations
 ```
 
-📸 **Active Directory Users and Computers (ADUC) Showing OU structure**
-
-![Active Directory Users and Computers (ADUC) Showing OU structure](/screenshots/04/01.png)
-
-### Design Principles
-
-The structure was created based on the following principles:
-
-- Clear separation between administrative accounts and standard user accounts.
-- Isolation of privileged objects under `_Admin`.
-- Centralized management of security groups under `_Groups`.
-- Logical segregation of disabled objects inside `_Disabled-Objects`.
-- Department-based organization under `Departments`.
-- Sub-division of the IT department into:
-  - `ITSecurity`
-  - `ITSupport`
-
-This structure ensures:
-
-- Granular GPO application
-- Easier delegation of administrative rights
-- Better visibility and control
-- Enterprise-aligned design standards
-- Future scalability
-
----
-
-## 2. Security Group Design
+### AGDLP Model
 
 The group architecture follows the **AGDLP model**:
 
-> Accounts → Global Groups → Domain Local Groups → Permissions
+```
+Accounts → Global Groups → Domain Local Groups → Permissions
+```
+
+- **Global Groups** represent logical department membership and are the only groups that contain user accounts
+- **Domain Local Groups** are used exclusively for resource permission assignment
+- Permissions are never assigned directly to users or Global Groups
+
+---
+
+## 1️⃣ Organizational Unit Structure
+
+The OU hierarchy was designed following enterprise best practices, focusing on scalability, security boundaries, and administrative delegation.
+
+### Design Principles
+
+- Clear separation between administrative accounts (`_Admin`) and standard user accounts (`Departments`)
+- Privileged objects isolated under `_Admin` to enable targeted GPO application and delegation
+- Security groups centralized under `_Groups` with explicit separation between Global and Domain Local
+- Disabled objects isolated in `_Disabled-Objects` to keep the directory clean without permanent deletion
+- The IT department is subdivided into `ITSecurity` and `ITSupport` to support granular policy and access control
+
+📸 **Active Directory Users and Computers showing the full OU structure**
+
+![Active Directory Users and Computers showing OU structure](/screenshots/04/01.png)
+
+---
+
+## 2️⃣ Security Group Design
 
 All groups are organized under:
 
 ```
 _Groups
-├── Global
-├── DomainLocal
+├── Global        → OU=Global,OU=_Groups,DC=bocorp,DC=local
+└── DomainLocal   → OU=DomainLocal,OU=_Groups,DC=bocorp,DC=local
 ```
-
-This separation enforces clarity between logical grouping (Global) and permission assignment (Domain Local).
 
 ---
 
-## 2.1 Global Security Groups (GG)
+### 2.1 Global Security Groups
 
-**Location:**
+Global Groups are used to group users by department and role. They serve as the logical grouping layer in AGDLP and are nested into Domain Local Groups to grant resource access.
 
-```
-OU=Global,OU=_Groups,DC=bocorp,DC=local
-```
+| Group | Purpose |
+|-------|---------|
+| `GG-Finance-Users` | Standard Finance department users |
+| `GG-HR-Users` | Standard HR department users |
+| `GG-IT-Users` | Standard IT department users |
+| `GG-Sales-Users` | Standard Sales department users |
+| `GG-Finance-Managers` | Finance department managers |
+| `GG-HR-Managers` | HR department managers |
+| `GG-IT-Managers` | IT department managers |
+| `GG-Sales-Managers` | Sales department managers |
+| `GG-Helpdesk-PasswordReset` | Delegated password reset capability |
+| `GG-Workstation-Admins` | Local administrator rights on workstations |
 
-**Defined Global Groups:**
-
-```
-GG-Finance-Users
-GG-HR-Users
-GG-IT-Users
-GG-Sales-Users
-
-GG-Finance-Managers
-GG-HR-Managers
-GG-IT-Managers
-GG-Sales-Managers
-
-GG-Helpdesk-PasswordReset
-GG-Workstation-Admins
-```
-
-### Purpose
-
-Global Groups are used to:
-
-- Group users by department.
-- Separate Managers from standard Users.
-- Apply role-based access control (RBAC).
-- Delegate specific administrative privileges.
-- Serve as the logical grouping layer in AGDLP.
-
-Examples:
-
-- `GG-IT-Users` → Standard IT personnel
-- `GG-IT-Managers` → IT leadership accounts
-- `GG-Helpdesk-PasswordReset` → Delegated password reset capability
-- `GG-Workstation-Admins` → Local workstation administrative rights
-
-📸 **Global Groups**
+📸 **Global Groups in Active Directory**
 
 ![Global Groups](/screenshots/04/05.png)
 
 ---
 
-## 2.2 Domain Local Security Groups (DL)
+### 2.2 Domain Local Security Groups
 
-**Location:**
+Domain Local Groups are used exclusively to assign NTFS and Share permissions on resources. They receive Global Groups as members — never individual user accounts.
 
-```
-OU=DomainLocal,OU=_Groups,DC=bocorp,DC=local
-```
+| Group | Access Level |
+|-------|-------------|
+| `DL-Share-Finance-RW` | Read/Write on Finance share |
+| `DL-Share-Finance-RO` | Read-Only on Finance share |
+| `DL-Share-HR-RW` | Read/Write on HR share |
+| `DL-Share-HR-RO` | Read-Only on HR share |
+| `DL-Share-IT-RW` | Read/Write on IT share |
+| `DL-Share-IT-RO` | Read-Only on IT share |
+| `DL-Share-Sales-RW` | Read/Write on Sales share |
+| `DL-Share-Sales-RO` | Read-Only on Sales share |
 
-**Defined Domain Local Groups:**
-
-```
-DL-Share-Finance-RW
-DL-Share-HR-RW
-DL-Share-IT-RW
-DL-Share-Sales-RW
-
-DL-Share-Finance-RO
-DL-Share-HR-RO
-DL-Share-IT-RO
-DL-Share-Sales-RO
-```
-
-### Purpose
-
-Domain Local Groups are used to:
-
-- Assign direct NTFS and Share permissions.
-- Separate Read-Write (RW) and Read-Only (RO) access levels.
-- Receive membership from Global Groups.
-
-Example implementation:
+**Example membership chain for Finance:**
 
 ```
-GG-Finance-Users      → Member of → DL-Share-Finance-RO
-GG-Finance-Managers   → Member of → DL-Share-Finance-RW
+GG-Finance-Users    → Member of → DL-Share-Finance-RO
+GG-Finance-Managers → Member of → DL-Share-Finance-RW
 ```
 
-This ensures:
-
-- Permissions are never assigned directly to users.
-- Changes in access are handled by modifying group membership.
-- The environment remains clean, scalable, and manageable.
-
-📸 **Domain Local Security Groups**
+📸 **Domain Local Security Groups in Active Directory**
 
 ![Domain Local Security Groups](/screenshots/04/02.png)
 
 ---
 
-## 3. Automation Script
+## 3️⃣ Automation Script
 
-A PowerShell automation script was developed to deploy the full identity structure.
+A PowerShell script was developed to automate the full identity deployment from a single execution.
 
-### ⚙ The script performs the following tasks:
+### Script: [`identity-deployment.ps1`](/scripts/identity-deployment.ps1)
 
-1. Creates the complete OU hierarchy.
-2. Creates all Global Security Groups.
-3. Creates all Domain Local Security Groups.
-4. Imports users from a CSV file.
-5. Creates:
-   - 1 Manager per department
-   - 3 Users per department
-6. Places each user in the correct Department OU.
-7. Distributes IT users between:
-   - `OU=ITSecurity`
-   - `OU=ITSupport`
-8. Assigns users to the appropriate Global Security Group.
-9. Provides console feedback for success or failure.
+**Input file:** [`bocorp-users.csv`](/scripts/bocorp-users.csv)
 
-### 📂 Files Included
+The script performs the following tasks:
 
-- **Script**: [`identity-deployment.ps1`](/scripts/identity-deployment.ps1)  
-- **CSV File**: [`bocorp-users.csv`](/scripts/bocorp-users.csv)
+1. Creates the complete OU hierarchy
+2. Creates all Global Security Groups under `OU=Global,OU=_Groups`
+3. Creates all Domain Local Security Groups under `OU=DomainLocal,OU=_Groups`
+4. Imports users from the CSV file
+5. Creates 1 Manager and 3 standard Users per department
+6. Places each user in the correct Department OU
+7. Distributes IT users between `ITSecurity` and `ITSupport`
+8. Assigns each user to their appropriate Global Security Group
+9. Outputs success or failure feedback to the console for each operation
 
-📸 **Script Output**
+📸 **Script execution output**
 
 ![Script Output](/screenshots/04/03.png)
 ![Script Output](/screenshots/04/04.png)
@@ -222,11 +163,11 @@ A PowerShell automation script was developed to deploy the full identity structu
 
 ## ✅ Outcome
 
-After execution:
+After completing this section:
 
-- The complete OU structure is deployed.
-- All Global and Domain Local groups are created.
-- All users are placed inside their corresponding Department OU.
-- IT users are correctly distributed between ITSecurity and ITSupport.
-- Users are members of their appropriate Global Security Group.
-- Global Groups are ready to be nested into Domain Local Groups.
+- The complete OU structure is deployed across `bocorp.local`.
+- All Global and Domain Local security groups are created and organized.
+- All department users are placed in their corresponding OU.
+- IT users are distributed between `ITSecurity` and `ITSupport`.
+- Each user is a member of their appropriate Global Security Group.
+- Global Groups are ready to be nested into Domain Local Groups for resource access control.

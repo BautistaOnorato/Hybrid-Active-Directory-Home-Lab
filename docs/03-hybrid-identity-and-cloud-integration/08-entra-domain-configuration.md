@@ -1,170 +1,111 @@
-# 08 - Entra Domain Configuration and UPN Alignment
+# 08 – Entra Domain Configuration and UPN Alignment
 
 ---
 
 ## 🎯 Objective
 
-Configure and verify a custom public domain in Microsoft Entra ID and align on-premises Active Directory User Principal Names (UPNs) to ensure a clean and conflict-free hybrid identity deployment.
+Configure a custom public domain in Microsoft Entra ID and align on-premises Active Directory User Principal Names (UPNs) to prepare the environment for hybrid identity synchronization.
 
-This section ensures:
+This section covers:
 
-- `bocorp.online` is verified in Microsoft Entra ID  
-- On-prem users authenticate using a routable public domain  
-- Hybrid synchronization does not generate duplicate objects  
-- Microsoft 365 sign-in reflects enterprise identity standards  
-
----
-
-## 🧠 Architectural Context
-
-The internal Active Directory domain:
-
-```
-bocorp.local
-```
-
-is a non-routable domain and cannot be used for Microsoft 365 authentication.
-
-To enable hybrid identity, users must authenticate using a verified public domain:
-
-```
-user@bocorp.online
-```
-
-This requires:
-
-1. Verifying the custom domain in Microsoft Entra ID  
-2. Adding an alternate UPN suffix in Active Directory  
-3. Updating all user accounts to use the new UPN suffix  
+- Verifying the custom domain `bocorp.online` in Microsoft Entra ID
+- Adding an alternate UPN suffix to the on-premises Active Directory
+- Updating all user accounts to use the new UPN suffix via PowerShell
+- Validating UPN alignment before running Entra Connect
 
 ---
 
-## 1️⃣ Custom Domain Verification in Microsoft Entra ID
+## 🏗 Architecture Overview
+
+The internal Active Directory domain `bocorp.local` is a non-routable domain and cannot be used for Microsoft 365 authentication. To enable hybrid identity, users must authenticate to cloud services using a verified public domain.
+
+```
+On-Prem AD (bocorp.local)
+        ↓
+Alternate UPN Suffix added: bocorp.online
+        ↓
+Users updated: user@bocorp.local → user@bocorp.online
+        ↓
+Microsoft Entra ID (bocorp.online – verified)
+        ↓
+Microsoft 365 / Exchange Online / Intune
+```
+
+### Why UPN Alignment Is Required
+
+| Problem | Solution |
+|---------|----------|
+| `bocorp.local` is non-routable and cannot be verified in Entra ID | Verify `bocorp.online` as a custom domain in Microsoft Entra ID |
+| Users synchronized with `@bocorp.local` UPNs generate unverified domain warnings | Add `bocorp.online` as an alternate UPN suffix in on-prem AD |
+| Cloud sign-in would use an unverified domain, causing authentication failures | Update all user UPNs to `@bocorp.online` before synchronization |
+
+> Adding the alternate UPN suffix does **not** rename the domain. The internal domain remains `bocorp.local`. The suffix only allows users to be assigned a routable UPN for cloud authentication.
 
 ---
 
-### 1.1 Add Custom Domain
+## 1️⃣ Verify the Custom Domain in Microsoft Entra ID
 
-1. Sign in to:
-   ```
-   https://admin.cloud.microsoft/
-   ```
-2. Navigate to:
-   ```
-   Settings → Domains
-   ```
-3. Click:
-   ```
-   + Add domain
-   ```
-4. Enter:
-   ```
-   bocorp.online
-   ```
+### 1.1 Add the Domain
+
+Navigate to the Microsoft 365 Admin Center and add the custom domain:
+
+```
+https://admin.cloud.microsoft → Settings → Domains → Add domain
+```
+
+Enter `bocorp.online` and proceed to the verification step.
 
 ---
 
-### 1.2 DNS TXT Record Validation (Hostinger)
+### 1.2 Create the DNS TXT Verification Record
 
-Microsoft Entra ID will generate a TXT record to verify ownership of the domain.
-
-Example:
+Microsoft Entra ID generates a TXT record to verify ownership of the domain. The record must be added to the DNS zone of `bocorp.online` at the domain registrar.
 
 | Type | Host | Value |
-|------|------|--------|
-| TXT  | @    | MS=ms83153720 |
+|------|------|-------|
+| TXT | @ | MS=ms83153720 |
 
-### Steps in Hostinger
-
-1. Navigate to Domains → DNS / Nameservers  
-2. Create a new DNS record:
-   - Type: `TXT`
-   - Host: `@`
-   - Value: `MS=ms83153720`
-   - TTL: Default
-3. Save changes
-
-Wait 5–15 minutes for DNS propagation.
-
-Return to Microsoft Entra ID and click:
+In **Hostinger**, navigate to:
 
 ```
-Verify
+Domains → DNS / Nameservers → Add Record
 ```
 
-📸 **Domain Verification Success**
+Create the record with the values above and save. Allow 5–15 minutes for DNS propagation, then return to the Microsoft 365 Admin Center and click **Verify**.
+
+📸 **Domain verification successful in Microsoft Entra ID**
 
 ![Domain Verification Success](/screenshots/08/01.png)
 
 ---
 
-## 2️⃣ Configure Alternate UPN Suffix in Active Directory
+## 2️⃣ Add Alternate UPN Suffix in Active Directory
 
----
+On **DC-01**, open **Active Directory Domains and Trusts**:
 
-### 2.1 Open Active Directory Domains and Trusts
+```
+Active Directory Domains and Trusts → Right-click the root node → Properties
+```
 
-On **DC-01**:
-
-1. Open:
-   ```
-   Active Directory Domains and Trusts
-   ```
-2. Right-click the root node
-3. Select:
-   ```
-   Properties
-   ```
-
----
-
-### 2.2 Add Alternate UPN Suffix
-
-In **Alternative UPN suffixes**, add:
+Under **Alternative UPN suffixes**, add:
 
 ```
 bocorp.online
 ```
 
-Click:
+Click **Apply** → **OK**.
 
-```
-Apply → OK
-```
-
-📸 **Alternate UPN Suffix Configuration**
+📸 **Alternate UPN suffix bocorp.online added**
 
 ![Alternate UPN Suffix](/screenshots/08/02.png)
 
 ---
 
-## 🧠 Why This Is Required
+## 3️⃣ Update User Principal Names
 
-This does **not** rename the domain.
+All users in the `Departments` OU were updated to use the new UPN suffix via PowerShell.
 
-The internal domain remains:
-
-```
-bocorp.local
-```
-
-The alternate UPN suffix only allows users to authenticate as:
-
-```
-user@bocorp.online
-```
-
-This ensures cloud compatibility while preserving internal AD structure.
-
----
-
-## 3️⃣ Update User Principal Names (UPN)
-
----
-
-### 3.1 Bulk Update via PowerShell
-
-On **DC-01**, run [`change-upn.ps1`](/scripts/03.ps1) :
+### Script: [`change-upn.ps1`](/scripts/change-upn.ps1)
 
 ```powershell
 Get-ADUser -Filter * -SearchBase "OU=Departments,DC=bocorp,DC=local" |
@@ -174,34 +115,31 @@ ForEach-Object {
 }
 ```
 
----
-
-### 🔎 Script Explanation
-
-- Retrieves all users in the `Departments` OU  
-- Preserves existing `SamAccountName`  
-- Updates only the UPN suffix  
-- Prepares users for hybrid synchronization  
+The script retrieves all user accounts under `OU=Departments`, preserves the existing `SamAccountName`, and updates only the UPN suffix from `@bocorp.local` to `@bocorp.online`.
 
 ---
 
-### 3.2 Manual Verification
+## 🔎 Validation
 
-1. Open:
-   ```
-   Active Directory Users and Computers
-   ```
-2. Open any user account
-3. Navigate to the **Account** tab
-4. Confirm:
+### Verify the UPN Update
+
+Open **Active Directory Users and Computers** on DC-01, navigate to any user account in the `Departments` OU, and confirm the UPN suffix on the **Account** tab:
 
 ```
-User logon name: user@bocorp.online
+User logon name: <username>@bocorp.online
 ```
 
-📸 **User Account UPN Updated**
+📸 **User account showing updated UPN suffix**
 
 ![User UPN Updated](/screenshots/08/03.png)
+
+### Verify DNS Propagation
+
+Before proceeding to Entra Connect configuration, confirm the TXT record is resolving correctly:
+
+```powershell
+Resolve-DnsName -Name bocorp.online -Type TXT
+```
 
 ---
 
@@ -209,7 +147,7 @@ User logon name: user@bocorp.online
 
 After completing this section:
 
-- On-prem Active Directory remains authoritative  
-- Users authenticate using a verified public domain  
-- Hybrid identity alignment is clean and structured  
-- The environment is fully prepared for Password Hash Synchronization (PHS)  
+- `bocorp.online` is verified as a custom domain in Microsoft Entra ID.
+- The alternate UPN suffix `bocorp.online` is registered in the on-premises Active Directory.
+- All department users have been updated to authenticate as `user@bocorp.online`.
+- The environment is fully prepared for directory synchronization with Microsoft Entra Connect.

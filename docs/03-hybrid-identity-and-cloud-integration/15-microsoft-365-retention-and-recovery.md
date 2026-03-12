@@ -1,4 +1,4 @@
-# 15 - Microsoft 365 Retention and Recovery
+# 15 – Microsoft 365 Retention and Recovery
 
 ---
 
@@ -6,316 +6,205 @@
 
 Implement and validate Microsoft 365 retention and recovery mechanisms to simulate real-world enterprise data protection and compliance workflows.
 
-This section demonstrates:
+This section covers:
 
-- Retention policy enforcement in Exchange Online
-- Protection against permanent deletion by users
-- eDiscovery-based recovery for email and OneDrive files
-- Legal/compliance-grade data restoration procedures
-
-The goal is to validate that users cannot permanently destroy protected data and that administrators can recover it using compliance tools.
-
----
-
-## 1️⃣ Retention Policy Configuration
-
-Retention policies were configured using the Microsoft Purview compliance portal.
-
-📍 Portal Used:  
-**Microsoft Purview – Data Lifecycle Management**
+- Configuring a retention policy in Microsoft Purview for Exchange mailboxes and OneDrive accounts
+- Simulating permanent deletion of an email by a user
+- Recovering the deleted email using eDiscovery
+- Simulating permanent deletion of a OneDrive file by a user
+- Recovering the deleted file using eDiscovery
+- Validating that users cannot permanently destroy retention-protected content
 
 ---
 
-### 1.1 Retention Policy Created
-
-**Policy Name:**
+## 🏗 Architecture Overview
 
 ```
-RP-Exchange-5Years
+User deletes item (email or file)
+        ↓
+Deleted from mailbox / OneDrive Recycle Bin
+        ↓
+Permanently deleted by user
+        ↓
+Item preserved in hidden compliance storage
+(Retention Policy: RP-Exchange-5Years)
+        ↓
+Administrator creates eDiscovery case
+        ↓
+Search → Export → Restore
 ```
 
-### Scope
+### Retention Policy Scope
 
-The policy was configured to apply to:
+| Setting | Value |
+|---------|-------|
+| Policy Name | `RP-Exchange-5Years` |
+| Applies to | Exchange mailboxes, OneDrive accounts |
+| Retain items for | 5 years |
+| Action after retention period | Retain only (no automatic deletion) |
 
-- Exchange mailboxes
-- OneDrive accounts
-
-### Retention Settings
-
-- Retain items for: **5 years**
-- Deletion after retention: Not configured (retain only)
+The retention policy overrides user deletion behavior by moving deleted items into a hidden preservation location. Users cannot access, bypass, or permanently destroy protected content during the retention window. Recovery requires administrator access through eDiscovery.
 
 ---
 
-### 🔎 Purpose
+## 1️⃣ Configure Retention Policy
 
-This policy ensures that:
+Navigate to the Microsoft Purview compliance portal:
 
-- Emails cannot be permanently destroyed by end users
-- Files deleted from OneDrive remain recoverable
-- Compliance and legal investigations can retrieve historical data
-- Insider threats or accidental deletion cannot remove protected content
+```
+Microsoft Purview → Data Lifecycle Management → Retention policies → New retention policy
+```
 
-📸 **Retention Policy**
+Configure the policy with the following settings:
+
+| Setting | Value |
+|---------|-------|
+| Name | `RP-Exchange-5Years` |
+| Locations | Exchange mailboxes, OneDrive accounts |
+| Retain items for | 5 years |
+| Action after retention period | Do nothing (retain only) |
+
+📸 **Retention policy configured in Microsoft Purview**
 
 ![Retention Policy](/screenshots/15/01.png)
 
 ---
 
-## 2️⃣ Exchange Online Retention Validation
+## 2️⃣ Exchange Online – Deleted Email Recovery
+
+### 2.1 Simulate Permanent Deletion
+
+The following deletion chain was executed on the `fernandaortega@bocorp.online` mailbox to simulate a user permanently destroying an email:
+
+1. A test email with subject **Test Retention Policy** was sent to `fernandaortega@bocorp.online`
+2. Email deleted from **Inbox**
+3. Email removed from **Deleted Items**
+4. Email removed from **Recover Deleted Items**
+
+At this point the email is permanently deleted from the user's perspective. The item remains preserved in the hidden compliance storage due to the active retention policy.
 
 ---
 
-### 2.1 Test Scenario – Deleted Email Recovery
+### 2.2 Create eDiscovery Case
 
-A test email was sent to:
+Navigate to:
 
 ```
-fernandaortega@bocorp.online
+Microsoft Purview → eDiscovery → Cases → Create a case
 ```
 
-**Subject:** Test Retention Policy
+| Setting | Value |
+|---------|-------|
+| Case name | `Bocorp-Retention-Test` |
 
 ---
 
-### Deletion Process Simulated
+### 2.3 Search for the Deleted Email
 
-The following deletion chain was executed:
-
-1. Email deleted from Inbox  
-2. Email removed from **Deleted Items**
-3. Email removed from **Recover Deleted Items**
-
-At this stage, the email was permanently deleted from the user’s perspective.
-
-However, due to the active retention policy, the item was preserved in the hidden compliance storage.
-
----
-
-## 3️⃣ eDiscovery Case Creation
-
-To simulate enterprise legal recovery, the email was restored using eDiscovery.
-
-📍 Portal Used:  
-**Microsoft Purview → eDiscovery**
-
----
-
-### 3.1 Case Created
-
-**Case Name:**
+Inside the case, create a new search:
 
 ```
-Bocorp-Retention-Test
+Bocorp-Retention-Test → Searches → New search
 ```
 
+| Setting | Value |
+|---------|-------|
+| Search name | `Search-Deleted-Mail` |
+| Data source | `fernandaortega@bocorp.online` |
+| Scope | Mailboxes, SharePoint sites, OneDrive accounts |
+| Query | `(SubjectTitle:"Test Retention Policy")` |
 
----
+Run the search and confirm the deleted email appears in the results.
 
-## 4️⃣ Search – Deleted Mail Recovery
-
----
-
-### 4.1 Search Configuration
-
-**Search Name:**
-
-```
-Search-Deleted-Mail
-```
-
-**Query Used:**
-
-```
-(SubjectTitle="Test Retention Policy")
-```
-
-**Data Source**
-
-```
-fernandaortega@bocorp.online
-```
-
-Scope included:
-
-- Mailboxes
-- SharePoint sites
-- OneDrive accounts
-
----
-
-### 4.2 Execution
-
-- Query executed successfully
-- Deleted email appeared in search results
-- Retention policy confirmed functional
-
-📸 **Search-Deleted-Mail statistics**
+📸 **Search-Deleted-Mail results and statistics**
 
 ![Search-Deleted-Mail statistics](/screenshots/15/02.png)
 
 ---
 
-### 4.3 Export & Restore
+### 2.4 Export and Restore
 
-1. Results exported from eDiscovery
-2. Export package downloaded
-3. Mail restored into Outlook (Classic)
+Export the search results from the eDiscovery case:
 
-📸 **Export package**
+```
+Search-Deleted-Mail → Actions → Export results
+```
+
+Download the export package and import the `.pst` file into Outlook (Classic) to restore the email.
+
+📸 **Export package downloaded**
 
 ![Export package](/screenshots/15/03.png)
 
-📸 **Restored Email in Outlook**
+📸 **Deleted email restored in Outlook**
 
 ![Restored Email in Outlook](/screenshots/15/04.png)
 
 ---
 
-### ✅ Validation Result
+## 3️⃣ OneDrive – Deleted File Recovery
 
-Even after permanent deletion by the user, the email:
+### 3.1 Simulate Permanent Deletion
 
-- Remained preserved
-- Was searchable
-- Was exportable
-- Was restorable
+The following deletion chain was executed on the `fernandaortega@bocorp.online` OneDrive account:
 
-This confirms retention enforcement at the compliance layer.
+1. A test file named **ExcelFileTest.xlsx** was created in OneDrive
+2. File moved to the **Recycle Bin**
+3. File permanently deleted from the **Recycle Bin**
 
----
-
-## 5️⃣ OneDrive Retention Validation
+At this point the file is permanently deleted from the user's perspective. The item remains preserved in the Preservation Hold Library due to the active retention policy.
 
 ---
 
-### 5.1 Test Scenario – Deleted File Recovery
+### 3.2 Search for the Deleted File
 
-Inside the OneDrive account of:
-
-```
-fernandaortega@bocorp.onlie
-```
-
-An Excel file was created:
+Inside the existing eDiscovery case `Bocorp-Retention-Test`, create a new search:
 
 ```
-ExcelFileTest.xlsx
+Bocorp-Retention-Test → Searches → New search
 ```
 
+| Setting | Value |
+|---------|-------|
+| Search name | `Search-Deleted-File` |
+| Data source | `fernandaortega@bocorp.online` |
+| Scope | Mailboxes, SharePoint sites, OneDrive accounts |
+| Query | `(ExcelFileTest)` |
 
----
+Run the search and confirm the deleted file appears in the results.
 
-### Deletion Process Simulated
-
-1. File moved to Recycle Bin
-2. File permanently deleted from Recycle Bin
-
-From the user perspective, the file no longer existed.
-
-However, due to the active retention policy, the file was preserved in the Preservation Hold Library.
-
----
-
-## 6️⃣ Search – Deleted File Recovery
-
----
-
-### 6.1 Search Configuration
-
-**Search Name:**
-
-```
-Search-Deleted-File
-```
-
-**Query Used:**
-
-```
-((ExcelFileTest))
-```
-
-**Data Source**
-
-```
-fernandaortega@bocorp.online
-```
-
-
-Scope included:
-
-- Mailboxes
-- SharePoint sites
-- OneDrive accounts
-
----
-
-### 6.2 Execution
-
-- Query executed successfully
-- Deleted Excel file appeared in results
-- File confirmed preserved despite permanent deletion
-
-📸 **Search-Deleted-File statistics**
+📸 **Search-Deleted-File results and statistics**
 
 ![Search-Deleted-File statistics](/screenshots/15/05.png)
 
 ---
 
-### 6.3 Export & Restore
+### 3.3 Export and Restore
 
-1. Results exported from eDiscovery
-2. Export package downloaded
-3. File restored into OneDrive
+Export the search results from the eDiscovery case:
 
-📸 **Export package**
+```
+Search-Deleted-File → Actions → Export results
+```
+
+Download the export package and restore the file back to OneDrive.
+
+📸 **Export package downloaded**
 
 ![Export package](/screenshots/15/06.png)
 
-📸 **Restored File in OneDrive**
+📸 **Deleted file restored in OneDrive**
 
 ![Restored File in OneDrive](/screenshots/15/07.png)
 
 ---
 
-### ✅ Validation Result
-
-The OneDrive file:
-
-- Could not be permanently destroyed by the user
-- Remained indexed and searchable
-- Was exportable through compliance tools
-- Was successfully restored
-
----
-
-## 🔐 Architectural Behavior Observed
-
-The retention policy overrides user deletion behavior by:
-
-- Moving deleted items into a hidden preservation location
-- Preventing physical destruction during retention window
-- Allowing compliance search and export only
-
-Users:
-- Cannot access preserved copies
-- Cannot bypass retention
-- Cannot permanently destroy protected data
-
-Administrators:
-- Must use eDiscovery for recovery
-
----
-
 ## ✅ Outcome
 
-By completing this section:
+After completing this section:
 
-- A 5-year retention policy is enforced
-- Email recovery via eDiscovery was validated
-- OneDrive file recovery via eDiscovery was validated
-- Permanent deletion attempts were successfully mitigated
-- Compliance-grade export and restoration workflows were executed
-
-The environment now includes enterprise-level data protection and retention controls.
+- `RP-Exchange-5Years` enforces a 5-year retention policy across Exchange mailboxes and OneDrive accounts.
+- Permanently deleted emails remain preserved and are recoverable through eDiscovery.
+- Permanently deleted OneDrive files remain preserved in the Preservation Hold Library and are recoverable through eDiscovery.
+- Users cannot bypass or permanently destroy retention-protected content during the retention window.
+- Compliance-grade export and restoration workflows were validated end-to-end for both email and file recovery.

@@ -14,28 +14,42 @@ Integrate Action1 into the lab environment to implement cloud-based endpoint man
 
 ---
 
-## 🧠 Architectural Context
+## 🏗 Architecture Overview
 
 Action1 is a cloud-based patch management and remote management platform. In this lab, it complements the existing on-premises GPO and Intune management layers by providing an additional visibility and control plane for software inventory, missing updates, and vulnerability reporting.
 
----
-
-## 🔹 Design Decision – GPO vs Intune for Agent Deployment
+### Why GPO Instead of Intune for Agent Deployment?
 
 Two deployment methods were evaluated before selecting GPO:
 
-| Method | Reason |
-|--------|--------|
-| Microsoft Intune | WS-01 and WS-02 are enrolled in Intune. DC-01 is not an MDM-managed endpoint by design. |
-| GPO | ✔ All three endpoints are domain-joined. GPO reaches DC-01, WS-01, and WS-02 without dependency on Intune enrollment. |
+| Method | Decision |
+|--------|----------|
+| Microsoft Intune | WS-01 and WS-02 are enrolled in Intune. DC-01 is not an MDM-managed endpoint by design — Intune cannot reach it. |
+| GPO | ✔ All three endpoints are domain-joined. GPO reaches DC-01, WS-01, and WS-02 regardless of Intune enrollment status. |
 
-GPO was selected as the deployment method because it covers the full scope of monitored endpoints regardless of their cloud management status.
+GPO was selected as the deployment method because it covers the full scope of monitored endpoints without any dependency on cloud management enrollment.
+
+### Endpoint Groups
+
+| Group | Members |
+|-------|---------|
+| Bocorp - Workstations | WS-01, WS-02 |
+| Bocorp - Servers | DC-01 |
+
+Separating endpoints into groups ensures that update policies, automation schedules, and approval workflows can be configured independently for servers and workstations.
+
+### Update Ring Design
+
+| Ring | Target | Approval | Reboot | Schedule |
+|------|--------|----------|--------|----------|
+| `UR-Workstations-AutoUpdate` | Bocorp - Workstations | Automatic | Outside active hours | Sunday 3:00 AM |
+| `UR-Servers-ManualApproval` | Bocorp - Servers | Manual | Show message | Sunday 2:00 AM |
+
+The server ring is scheduled one hour before the workstation ring to allow time for manual review and approval before the workstation maintenance window begins.
 
 ---
 
 ## 1️⃣ Agent Deployment
-
----
 
 ### 1.1 Download the Action1 Agent Installer
 
@@ -51,7 +65,7 @@ https://app.action1.com → Endpoints → New Endpoints → Install Agent
 
 ### 1.2 Host the Installer in SYSVOL
 
-The installer was hosted in SYSVOL to make it accessible to all domain-joined computers using their machine credentials.
+The installer was hosted in SYSVOL to make it accessible to all domain-joined computers using their machine credentials:
 
 ```powershell
 New-Item -Path "C:\Windows\SYSVOL\sysvol\bocorp.local\Action1" -ItemType Directory
@@ -60,7 +74,7 @@ Copy-Item -Path "C:\Users\Administrator\Downloads\action1_remote_agent.msi" `
           -Destination "C:\Windows\SYSVOL\sysvol\bocorp.local\Action1\"
 ```
 
-Verified UNC path accessibility:
+Verify the UNC path is accessible:
 
 ```powershell
 Test-Path "\\bocorp.local\SYSVOL\bocorp.local\Action1\action1_remote_agent.msi"
@@ -75,7 +89,7 @@ A PowerShell wrapper script was created to handle idempotent installation — th
 **Script:** [`deploy-action1.ps1`](/scripts/deploy-action1.ps1)
 
 ```powershell
-$installedApp = Get-WmiObject -Class Win32_Product | 
+$installedApp = Get-WmiObject -Class Win32_Product |
     Where-Object { $_.Name -like "*Action1*" }
 
 if ($null -eq $installedApp) {
@@ -100,7 +114,7 @@ A dedicated GPO was created to deploy the Action1 agent as a startup script.
 
 **GPO Name:** `GPO-Action1-AgentDeployment`
 
-**Startup Script Path:**
+Navigate to:
 
 ```
 Computer Configuration
@@ -109,44 +123,55 @@ Computer Configuration
 → Scripts (Startup/Shutdown)
 → Startup
 → PowerShell Scripts
-→ \\bocorp.local\SYSVOL\bocorp.local\Action1\deploy-action1.ps1
+```
+
+Add the following script path:
+
+```
+\\bocorp.local\SYSVOL\bocorp.local\Action1\deploy-action1.ps1
 ```
 
 ---
 
-### 1.5 Security Group and Filtering
+### 1.5 Security Group and Scope Filtering
 
-A dedicated security group was created to control which machines receive the GPO.
+A dedicated security group was created to control which machines receive the GPO:
 
-**Group:** `GG-Action1-Endpoints`  
-**Location:** `OU=Global,OU=_Groups,DC=bocorp,DC=local`  
-**Members:** DC-01, WS-01, WS-02
+| Field | Value |
+|-------|-------|
+| Group name | `GG-Action1-Endpoints` |
+| Location | `OU=Global,OU=_Groups,DC=bocorp,DC=local` |
+| Members | DC-01, WS-01, WS-02 |
 
-Security filtering was updated:
+Security filtering was updated on the GPO:
 
-- **Authenticated Users** → Removed
-- **GG-Action1-Endpoints** → Added with Read + Apply Group Policy permissions
+| Entry | Action |
+|-------|--------|
+| Authenticated Users | Removed |
+| `GG-Action1-Endpoints` | Added — Read + Apply Group Policy |
 
 ---
 
-### 1.6 GPO Links
+### 1.6 Link the GPO
 
 The GPO was linked to both OUs containing monitored endpoints:
 
-- `bocorp.local → Workstations`
-- `bocorp.local → Domain Controllers`
+```
+bocorp.local → Workstations
+bocorp.local → Domain Controllers
+```
 
 ---
 
 ### 1.7 Validation
 
-On each Windows host:
+On each Windows host, force a Group Policy refresh:
 
 ```powershell
 gpupdate /force
 ```
 
-After reboot, agent installation was confirmed:
+After reboot, confirm agent installation:
 
 ```powershell
 Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Action1*" }
@@ -161,13 +186,6 @@ Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*Action1*" }
 ## 2️⃣ Endpoint Organization
 
 Two endpoint groups were created in the Action1 console to enable separate policy management.
-
-| Group | Members |
-|-------|---------|
-| Bocorp - Workstations | WS-01, WS-02 |
-| Bocorp - Servers | DC-01 |
-
-This separation ensures that update policies, automation schedules, and approval workflows can be configured independently for servers and workstations.
 
 📸 **Bocorp - Workstations group settings**
 
@@ -191,12 +209,12 @@ The report confirmed the following software across all endpoints:
 
 | Software | Endpoints | Deployment Method |
 |----------|-----------|------------------|
-| Action1 Agent | 3 | GPO |
-| Zabbix Agent 2 | 3 | GPO |
-| Microsoft 365 Apps for enterprise | 2 (WS-01/2) | Intune |
-| 7-Zip (x64) | 2 (WS-01/2) | Intune |
-| Microsoft Azure Recovery Services Agent | 1 (DC-01) | Manual |
-| Microsoft Azure AD Connect Agent | 1 (DC-01) | Manual |
+| Action1 Agent | DC-01, WS-01, WS-02 | GPO |
+| Zabbix Agent 2 | DC-01, WS-01, WS-02 | GPO |
+| Microsoft 365 Apps for enterprise | WS-01, WS-02 | Intune |
+| 7-Zip (x64) | WS-01, WS-02 | Intune |
+| Microsoft Azure Recovery Services Agent | DC-01 | Manual |
+| Microsoft Azure AD Connect Agent | DC-01 | Manual |
 
 > Company Portal was not detected in the inventory. This is expected behavior — Action1's software inventory targets Win32 applications and does not enumerate Microsoft Store apps.
 
@@ -204,11 +222,9 @@ The report confirmed the following software across all endpoints:
 
 ## 4️⃣ Patch Management
 
----
-
 ### 4.1 Missing Updates Baseline
 
-Before configuring update policies, a baseline of missing updates was collected per endpoint.
+Before configuring update policies, a baseline of missing updates was collected per endpoint:
 
 | Endpoint | Missing Updates | Critical | Important | Unspecified |
 |----------|----------------|----------|-----------|-------------|
@@ -222,7 +238,7 @@ Before configuring update policies, a baseline of missing updates was collected 
 
 An automated Update Ring was created for the workstation group.
 
-**Name:** `UR-Workstations-AutoUpdate`  
+**Name:** `UR-Workstations-AutoUpdate`
 **Target:** Bocorp - Workstations
 
 | Setting | Value |
@@ -234,7 +250,7 @@ An automated Update Ring was created for the workstation group.
 | Schedule | Weekly, Sunday 3:00 AM |
 | Deactivate Windows Update | Enabled |
 
-> A 7-day delay was configured to avoid deploying updates on release day, which is a common practice to allow time for the community to identify problematic patches before broad deployment.
+> A 7-day delay was configured to avoid deploying updates on release day. This is a common practice that allows time for the community to identify problematic patches before broad deployment.
 
 > The **Deactivate updates in Windows settings** option was enabled to ensure Action1 takes full control of the update process on workstations, preventing Windows Update from installing patches outside the configured maintenance window.
 
@@ -244,7 +260,7 @@ An automated Update Ring was created for the workstation group.
 
 A separate Update Ring with manual approval was created for DC-01.
 
-**Name:** `UR-Servers-ManualApproval`  
+**Name:** `UR-Servers-ManualApproval`
 **Target:** Bocorp - Servers
 
 | Setting | Value |
@@ -256,8 +272,6 @@ A separate Update Ring with manual approval was created for DC-01.
 | Deactivate Windows Update | Enabled |
 
 > Manual approval is required for DC-01 because domain controllers should never be rebooted automatically outside a planned maintenance window. An unplanned DC reboot directly impacts authentication for all domain users.
-
-> The schedule was set one hour before the workstation ring to allow time for manual approval and installation before the workstation maintenance window begins.
 
 ---
 
@@ -287,7 +301,7 @@ Vulnerabilities
 
 ### Findings
 
-Two CVEs were identified on WS-01, both related to the WireGuard installation.
+Two CVEs were identified on WS-01, both related to the WireGuard installation:
 
 | CVE | CVSS Score | CISA KEV | Published | Status | Software |
 |-----|------------|----------|-----------|--------|----------|
@@ -296,7 +310,7 @@ Two CVEs were identified on WS-01, both related to the WireGuard installation.
 
 ### Remediation Status
 
-Remediation was investigated. At the time of this documentation, **WireGuard 0.5.3 is the latest available version** for Windows. No updated version addressing these CVEs has been released by the vendor.
+At the time of this documentation, **WireGuard 0.5.3 is the latest available version** for Windows. No updated version addressing these CVEs has been released by the vendor.
 
 ### Risk Acceptance
 
@@ -313,9 +327,7 @@ Since no vendor fix is available, these vulnerabilities are documented as **acce
 
 A remote script execution was configured to simulate a common helpdesk task — forcing a Group Policy update on all workstations without requiring physical or RDP access.
 
----
-
-### 6.1 Script Created
+### 6.1 Create the Script
 
 A script was created in the Action1 Script Library:
 
@@ -328,9 +340,9 @@ Write-Output $result
 
 ---
 
-### 6.2 Automation Configured
+### 6.2 Configure the Automation
 
-An automation was created to execute the script remotely:
+Navigate to:
 
 ```
 Automations → New Automation → Run Script
@@ -338,13 +350,12 @@ Automations → New Automation → Run Script
 
 | Setting | Value |
 |---------|-------|
-| Script | Helpdesk - Force GPUpdate |
+| Name | `Script-ForceGPUpdate-Workstations` |
+| Script | `Helpdesk - Force GPUpdate` |
 | Target | Bocorp - Workstations |
 | Schedule | Run Once, immediately |
-| Name | Script-ForceGPUpdate-Workstations |
 
-
-📸 **Execution results**
+📸 **Remote script execution results**
 
 ![Remote Script Execution](/screenshots/E02/05.png)
 
@@ -358,6 +369,6 @@ After completing this integration:
 - Endpoints are organized into separate groups for workstations and servers.
 - Software inventory is centralized and validated against known deployments.
 - Automated update policies enforce patch compliance on workstations.
-- Manual approval workflow is in place for the domain controller.
-- Vulnerability assessment identified and documented two WireGuard CVEs.
+- A manual approval workflow is in place for the domain controller.
+- Vulnerability assessment identified and documented two WireGuard CVEs as accepted risk.
 - Remote PowerShell execution validated centralized helpdesk task delivery.

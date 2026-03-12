@@ -4,81 +4,81 @@
 
 ## 🎯 Objective
 
-Configure Exchange Online shared mailbox functionality for the Finance department, implementing:
+Configure a shared mailbox for the Finance department in Exchange Online, implementing centralized email access with proper delegation and access management.
 
-- Mail-enabled security group for access management  
-- Shared mailbox creation  
-- Full Access and Send As delegation  
-- AutoMapping validation  
-- Functional testing in Outlook Desktop (Classic)  
+This section covers:
+
+- Creating a Mail-Enabled Security Group to manage shared mailbox membership
+- Creating the Finance shared mailbox in the Microsoft 365 Admin Center
+- Assigning Full Access and Send As permissions via PowerShell
+- Validating AutoMapping and Send As functionality in Outlook Desktop
 
 ---
 
 ## 🏗 Architecture Overview
-
-### Logical Access Model
 
 ```
 Finance Users
         ↓
 MSG-Finance-Mailbox (Mail-Enabled Security Group)
         ↓
-Shared Mailbox Permissions (FullAccess + Send As)
+Shared Mailbox Permissions (Full Access + Send As)
         ↓
 finance@bocorp.online
 ```
 
----
+### Design Decisions
 
-## 🧱 Design Decisions
-
-- Permissions are assigned directly to users via script.  
-- Membership is managed through a Mail-Enabled Security Group.  
-- AutoMapping is enabled for seamless user experience.  
-- No nested on-prem group delegation is used due to hybrid resolution limitations.  
-
----
-
-## 🔹 Step 1 – Create Mail-Enabled Security Group (Admin Center)
-
-The group is used to centrally manage membership.
-
-### Procedure
-
-1. Navigate to **Teams & Groups** → **Active teams & groups**
-2. Click **Security groups**
-3. Click **Add a mail-enabled security group**
-4. Configure:
-   - Name: `MSG-Finance-Mailbox`
-   - Email: `financesg@bocorp.online`
-6. Assign Finance users as members
-7. Complete group creation
+| Decision | Justification |
+|----------|--------------|
+| Mail-Enabled Security Group for membership management | Centralizes access control — adding or removing a user from the group automatically reflects in mailbox access |
+| Permissions assigned via PowerShell script | Ensures consistent assignment across all group members without manual per-user configuration |
+| AutoMapping enabled | The shared mailbox appears automatically in Outlook without requiring users to add it manually |
+| No nested on-prem group delegation | Hybrid resolution limitations prevent on-prem groups from being used directly for Exchange Online permission assignment |
 
 ---
 
-## 🔹 Step 2 – Create Shared Mailbox (Admin Center)
+## 1️⃣ Create Mail-Enabled Security Group
 
-### Procedure
+Navigate to the Microsoft 365 Admin Center and create the security group:
 
-1. Navigate to **Teams & Groups** → **Shared mailboxes**
-2. Click **Add a shared mailbox**
-3. Configure:
-   - Name: Finance Shared Mailbox
-   - Email: `finance@bocorp.online`
-4. Save
+```
+https://admin.cloud.microsoft → Teams & Groups → Active teams & groups → Security groups → Add a mail-enabled security group
+```
+
+Configure the group with the following settings:
+
+| Setting | Value |
+|---------|-------|
+| Name | MSG-Finance-Mailbox |
+| Email | `financesg@bocorp.online` |
+
+Add all Finance department users as members of the group.
 
 ---
 
-## 🔹 Step 3 – Assign Permissions via Script
+## 2️⃣ Create the Finance Shared Mailbox
 
-Permissions assigned:
+Navigate to the Microsoft 365 Admin Center and create the shared mailbox:
 
-- FullAccess  
-- Send As  
-- AutoMapping enabled  
+```
+https://admin.cloud.microsoft → Teams & Groups → Shared mailboxes → Add a shared mailbox
+```
 
-### Script Used
-**Script:** [`finance-mailbox-permissions.ps1`](/scripts/finance-mailbox-permissions.ps1)
+Configure the mailbox with the following settings:
+
+| Setting | Value |
+|---------|-------|
+| Name | Finance Shared Mailbox |
+| Email | `finance@bocorp.online` |
+
+---
+
+## 3️⃣ Assign Mailbox Permissions
+
+Permissions are assigned to all members of `MSG-Finance-Mailbox` using a PowerShell script that iterates through the group membership and grants both Full Access and Send As on the shared mailbox.
+
+### Script: [`finance-mailbox-permissions.ps1`](/scripts/finance-mailbox-permissions.ps1)
 
 ```powershell
 Write-Host "Starting shared mailbox permission assignment..."
@@ -112,64 +112,68 @@ Write-Host "Completed successfully."
 
 ---
 
-## 🔹 Step 4 – Validation
+## 🔎 Validation
 
-### Verify Full Access
+### Verify Full Access Permissions
 
 ```powershell
 Get-MailboxPermission finance@bocorp.online |
-Where-Object {$_.User -like "*@*"} |
-Select User,AccessRights
+Where-Object { $_.User -like "*@*" } |
+Select-Object User, AccessRights
 ```
 
-#### Result
-```
-User                       AccessRights
-----                       ------------
-carlosmendez@bocorp.online {FullAccess}
-analopez@bocorp.online     {FullAccess}
-luisgarcia@bocorp.online   {FullAccess}
-mariatorres@bocorp.online  {FullAccess}
-```
+Expected output:
 
-### Verify Send As
-
-```powershell
-Get-RecipientPermission finance@bocorp.online |
-Where-Object {$_.Trustee -like "*@*"} |
-Select Trustee,AccessRights
 ```
-
-#### Result
-```
-User                       AccessRights
-----                       ------------
-carlosmendez@bocorp.online {SendAs}
-analopez@bocorp.online     {SendAs}
-luisgarcia@bocorp.online   {SendAs}
-mariatorres@bocorp.online  {SendAs}
+User                            AccessRights
+----                            ------------
+carlosmendez@bocorp.online      {FullAccess}
+analopez@bocorp.online          {FullAccess}
+luisgarcia@bocorp.online        {FullAccess}
+mariatorres@bocorp.online       {FullAccess}
 ```
 
 ---
 
-## 🔹 Step 5 – Functional Testing
+### Verify Send As Permissions
 
-### Outlook Desktop (Classic)
+```powershell
+Get-RecipientPermission finance@bocorp.online |
+Where-Object { $_.Trustee -like "*@*" } |
+Select-Object Trustee, AccessRights
+```
 
-Test scenario executed using a Finance user account:
+Expected output:
 
-- Shared mailbox appears automatically (AutoMapping validated)  
-- Mailbox opens without credential prompt  
-- Email successfully sent as `finance@bocorp.online`  
-- Sender identity displays as Finance mailbox  
+```
+Trustee                         AccessRights
+-------                         ------------
+carlosmendez@bocorp.online      {SendAs}
+analopez@bocorp.online          {SendAs}
+luisgarcia@bocorp.online        {SendAs}
+mariatorres@bocorp.online       {SendAs}
+```
+
+---
+
+### Validate in Outlook Desktop
+
+Test the following scenarios from a Finance user account in Outlook Desktop (Classic):
+
+| Test | Expected Result |
+|------|----------------|
+| Shared mailbox visibility | Mailbox appears automatically in the folder pane (AutoMapping) |
+| Open shared mailbox | Mailbox opens without a credential prompt |
+| Send email as Finance mailbox | Sender identity displays as `finance@bocorp.online` |
 
 ---
 
 ## ✅ Outcome
 
-The Finance shared mailbox:
+After completing this section:
 
-- Is centrally managed  
-- Uses secure delegated access  
-- Supports Send As functionality  
-- Auto-maps correctly in Outlook
+- `MSG-Finance-Mailbox` centralizes shared mailbox membership management.
+- `finance@bocorp.online` is accessible by all Finance department users.
+- Full Access and Send As permissions are assigned consistently via PowerShell.
+- AutoMapping delivers the shared mailbox automatically in Outlook Desktop.
+- Finance users can send email on behalf of the shared mailbox address.

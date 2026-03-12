@@ -6,114 +6,150 @@
 
 Enable and configure Hyper-V on a Windows 10 Home host and prepare the virtualization layer required for the lab environment.
 
-This step establishes the foundation where all virtual machines (Domain Controller and Workstations) will operate.
+This section covers:
+
+- Enabling Hyper-V on Windows 10 Home using a DISM script
+- Creating an Internal Virtual Switch for lab network isolation
+- Configuring NAT to provide internet access to virtual machines
 
 ---
 
-## 🖥 Host Environment
+## 🏗 Architecture Overview
 
-- Host OS: Windows 10 Home
-- Virtualization Platform: Hyper-V
-- Virtual Switch Type: External
+The virtual network implemented in this lab:
+
+```
+Virtual Machines (10.10.10.0/24)
+        ↓
+Internal Virtual Switch (BOCORP-SW01)
+        ↓
+Host vEthernet Adapter (10.10.10.1) – Default Gateway
+        ↓
+NAT (BOCORP-NAT)
+        ↓
+Physical Network / Internet
+```
+
+### Why Internal + NAT?
+
+Several virtual switch configurations were evaluated before selecting Internal + NAT:
+
+| Option | Reason |
+|--------|--------|
+| External Switch (bridged) | Exposes VMs directly to the physical home network — reduces isolation |
+| Private Switch | No internet access — prevents future cloud integration with Microsoft Entra ID |
+| Internal + NAT | ✔ Full network isolation with controlled internet access through the host |
+
+This approach provides:
+
+- A dedicated subnet (`10.10.10.0/24`) isolated from the physical home network
+- Internet access through Network Address Translation on the host
+- Greater flexibility for future routing and segmentation scenarios
+
+Virtual machines are not directly connected to the physical LAN. All outbound traffic is translated by the host using NAT.
 
 ---
 
-## 🔧 Enabling Hyper-V on Windows 10 Home
+## 1️⃣ Enable Hyper-V on Windows 10 Home
 
-Since Hyper-V is not exposed by default in Windows 10 Home, a batch script was used to manually install the necessary packages via DISM.
+Hyper-V is not exposed by default on Windows 10 Home. A batch script was used to manually install the required packages via DISM.
 
-### Script Used (`enable-hyperv.bat`)
+### Script: [`enable-hyperv.bat`](/scripts/enable-hyperv.bat)
 
 ```bat
 pushd "%~dp0"
 dir /b %SystemRoot%\servicing\Packages\*Hyper-V*.mum >hyperv.txt
 for /f %%i in ('findstr /i . hyperv.txt 2^>nul') do dism /online /norestart /add-package:"%SystemRoot%\servicing\Packages\%%i"
-del hyper-v.txt
+del hyperv.txt
 Dism /online /enable-feature /featurename:Microsoft-Hyper-V -All /LimitAccess /ALL
 pause
 ```
 
----
-
-## 🌐 Virtual Network Configuration (Internal + NAT)
+Run the script as Administrator and restart the machine when prompted.
 
 ---
 
-### Why Internal + NAT?
+## 2️⃣ Create Internal Virtual Switch
 
-This approach provides:
+The virtual switch was created using PowerShell on the host.
 
-* Full isolation from the physical home network.
-* A controlled lab environment using a dedicated subnet (10.10.10.0/24).
-* Internet access through Network Address Translation (NAT).
-* Greater flexibility for future routing and segmentation scenarios.
-
-Virtual machines are not directly connected to the physical LAN.  
-All outbound traffic is translated by the host using NAT.
-
----
-
-### Network Configuration Method
-
-The virtual network was created entirely using PowerShell on the host.
-
-
-#### Step 1 – Create Internal Virtual Switch
-
-Command used:
+### 2.1 Create the Switch
 
 ```powershell
 New-VMSwitch -SwitchName "BOCORP-SW01" -SwitchType Internal
 ```
 
-This created:
+This creates:
 
 - An Internal Virtual Switch named **BOCORP-SW01**
-- A new host adapter: vEthernet (BOCORP-SW01)
+- A new host adapter: `vEthernet (BOCORP-SW01)`
 
-#### Step 2 – Identify the Interface Index
+---
 
-To configure the IP address of the new virtual adapter, the following command was used:
+### 2.2 Identify the Interface Index
+
+To configure the IP address on the new virtual adapter, its interface index must be retrieved:
 
 ```powershell
 Get-NetAdapter
 ```
 
-The InterfaceIndex corresponding to: vEthernet (BOCORP-SW01) was identified (in this case: 65).
+Identify the `InterfaceIndex` corresponding to `vEthernet (BOCORP-SW01)`.
 
-#### Step 3 – Assign Gateway IP to the Internal Adapter
+---
 
-Command used:
+### 2.3 Assign Gateway IP to the Host Adapter
 
 ```powershell
-New-NetIPAddress -IPAddress 10.10.10.1 -PrefixLength 24 -InterfaceIndex 65
+New-NetIPAddress -IPAddress 10.10.10.1 -PrefixLength 24 -InterfaceIndex <index>
 ```
 
 This configuration:
 
-* Assigned 10.10.10.1 to the host's internal adapter
-* Defined the subnet 10.10.10.0/24
-* Established the host as the default gateway for all lab virtual machines
+- Assigns `10.10.10.1` to the host's internal adapter
+- Defines the subnet `10.10.10.0/24`
+- Establishes the host as the default gateway for all lab virtual machines
 
 ---
 
-### Step 4 – Create NAT Object
-
-Command used:
+## 3️⃣ Configure NAT
 
 ```powershell
-New-NetNat -Name BOCORP-NAT -InternalIPInterfaceAddressPrefix 10.10.10.0/24
+New-NetNat -Name "BOCORP-NAT" -InternalIPInterfaceAddressPrefix 10.10.10.0/24
 ```
 
-This enabled address translation from: 10.10.10.0/24 → Physical Network (192.168.1.0/24)
+This enables address translation from `10.10.10.0/24` to the physical network, allowing virtual machines to reach the internet through the host.
 
 ---
 
-### Design Considerations
+## 🔎 Validation
 
-* DC01 uses a static IP inside 10.10.10.0/24.
-* All clients use DC01 as their DNS server.
-* DNS forwarders are configured on DC01 for external resolution.
-* The host performs NAT only and is not domain-joined.
+Verify the virtual switch was created:
 
-This configuration ensures isolation, internet access, and enterprise-like segmentation while maintaining full control of the lab environment.
+```powershell
+Get-VMSwitch -Name "BOCORP-SW01"
+```
+
+Verify the NAT object was created:
+
+```powershell
+Get-NetNat -Name "BOCORP-NAT"
+```
+
+Verify the host adapter has the correct IP:
+
+```powershell
+Get-NetIPAddress -InterfaceAlias "vEthernet (BOCORP-SW01)"
+```
+
+---
+
+## ✅ Outcome
+
+After completing this section:
+
+- Hyper-V is enabled and operational on the Windows 10 Home host.
+- An Internal Virtual Switch (**BOCORP-SW01**) provides an isolated lab network.
+- The host adapter is configured as the default gateway (`10.10.10.1`) for the `10.10.10.0/24` subnet.
+- NAT is configured to allow virtual machines to access the internet through the host.
+- The virtualization layer is ready for Domain Controller and workstation deployment.

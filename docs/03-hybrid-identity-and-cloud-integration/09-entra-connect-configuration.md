@@ -1,232 +1,200 @@
-# 09 - Entra Connect Installation and Synchronization
+# 09 – Entra Connect Installation and Synchronization
 
 ---
 
 ## 🎯 Objective
 
-Install and configure Microsoft Entra Connect to establish secure synchronization between on-premises Active Directory and Microsoft Entra ID.
+Install and configure Microsoft Entra Connect on DC-01 to establish directory synchronization between the on-premises Active Directory and Microsoft Entra ID.
 
-This section enables:
+This section covers:
 
-- Hybrid identity integration
-- Password Hash Synchronization (PHS)
-- Seamless Single Sign-On (SSO)
-- OU-based filtering
-- Cloud authentication using verified UPNs
+- Downloading and installing Microsoft Entra Connect on DC-01
+- Selecting Password Hash Synchronization as the authentication method
+- Enabling Seamless Single Sign-On
+- Configuring OU-based filtering to control which objects are synchronized
+- Validating directory synchronization and cloud authentication
 
 ---
 
-## 🧠 Architecture Overview
-
-The hybrid identity architecture implemented in this lab:
-
-- **On-Prem Domain:** bocorp.local  
-- **Public Domain:** bocorp.online  
-- **Authentication Method:** Password Hash Synchronization (PHS)  
-- **SSO Method:** Seamless Single Sign-On  
-- **Filtering Strategy:** OU-based filtering  
-- **Installation Location:** DC-01  
-
-### Architecture Diagram
+## 🏗 Architecture Overview
 
 ```
-On-Prem AD (bocorp.local)
-        │
-        │  Entra Connect (PHS Sync)
-        ▼
+On-Premises AD (bocorp.local)
+        ↓
+Microsoft Entra Connect (DC-01)
+Password Hash Synchronization + Seamless SSO
+        ↓
 Microsoft Entra ID (bocorp.online)
-        │
-        ▼
-Microsoft 365 / Intune / Exchange Online
+        ↓
+Microsoft 365 / Exchange Online / Intune
 ```
 
-This model ensures:
+### Authentication Method – Password Hash Synchronization
 
-- Cloud authentication resilience  
-- Reduced infrastructure complexity  
-- Enterprise-aligned hybrid design  
+Several authentication methods were evaluated before selecting PHS:
+
+| Method | Reason |
+|--------|--------|
+| Pass-through Authentication (PTA) | Requires an always-available on-prem authentication agent — adds infrastructure dependency |
+| Active Directory Federation Services (AD FS) | Requires dedicated federation servers — significant infrastructure overhead |
+| Password Hash Synchronization (PHS) | ✔ Authentication occurs in the cloud — no dependency on DC availability for cloud sign-in |
+
+PHS is the Microsoft-recommended model for most environments and is the simplest hybrid identity configuration to deploy and maintain.
+
+### OU Filtering
+
+Only the `Departments` and `Global` OUs are included in the synchronization scope:
+
+| OU | Synchronized |
+|----|-------------|
+| `OU=Departments,DC=bocorp,DC=local` | ✔ Yes |
+| `OU=Global,OU=_Groups,DC=bocorp,DC=local` | ✔ Yes |
+| All other OUs | ✘ No |
+
+Synchronizing the `Departments` OU brings all department user accounts into Entra ID. Synchronizing the `Global` OU brings the Global Security Groups into Entra ID, enabling group-based licensing and role assignments in Microsoft 365. All other OUs — including service accounts, administrative users, and infrastructure containers — are excluded to reduce the attack surface and keep the Entra ID tenant clean.
 
 ---
 
 ## 1️⃣ Download and Install Entra Connect
 
----
-
 ### 1.1 Download
 
-Downloaded the latest version of Microsoft Entra Connect Sync from:
+On **DC-01**, download the latest version of Microsoft Entra Connect Sync from the Azure Portal:
 
 ```
-portal.azure.com → Microsoft Entra ID → Entra Connect
-```
-
----
-
-### 1.2 Launch Installer
-
-Executed the installer on **DC-01** using administrative privileges.
-
-When prompted: Express Settings or Customize? Selected:
-
-```
-Customize
+portal.azure.com → Microsoft Entra ID → Entra Connect → Download
 ```
 
 ---
 
-## 🧠 Why Custom Installation?
+### 1.2 Launch the Installer
 
-Custom setup allows:
+Run the installer as Administrator and select **Customize** when prompted to choose between Express Settings and Customize.
 
-- Explicit authentication method selection  
-- Seamless SSO configuration  
-- OU filtering  
-- Avoiding unnecessary features  
+> Express Settings configures synchronization automatically but does not allow selecting the authentication method, enabling Seamless SSO, or configuring OU filtering — all of which are required for this lab.
 
 ---
 
 ## 2️⃣ Configure Sign-In Method
 
-📸 **User Sign-In Method Selection**
+On the **User Sign-In** screen, select:
+
+```
+Password Hash Synchronization
+```
+
+Enable:
+
+```
+✔ Enable Single Sign-On
+```
+
+📸 **User Sign-In method selection**
 
 ![User Sign-In Method Selection](/screenshots/09/01.png)
 
 ---
 
-### 🔐 Why Password Hash Synchronization?
-
-- Authentication occurs in the cloud  
-- No dependency on DC availability for cloud login  
-- Simplified hybrid architecture  
-- Microsoft-recommended model for most environments  
-
----
-
 ## 3️⃣ Connect to Microsoft Entra ID
 
-Entered:
+Enter **Global Administrator** credentials for the `bocorp.online` tenant when prompted.
 
-- Global Administrator credentials  
-
-This step authorizes synchronization with the Microsoft Entra tenant.
+This step authorizes Entra Connect to write synchronized objects into the Microsoft Entra ID directory.
 
 ---
 
 ## 4️⃣ Connect to Active Directory Domain Services
 
-Entered:
-
-- Domain Administrator credentials for bocorp.local  
+Enter **Domain Administrator** credentials for `bocorp.local` when prompted.
 
 The wizard automatically:
 
-- Creates synchronization service account  
-- Assigns required directory permissions  
-- Configures synchronization rules  
+- Creates a dedicated synchronization service account in Active Directory
+- Assigns the required directory read permissions to the service account
+- Configures the synchronization rules for the connected directory
 
-📸 **AD DS Connection**
+📸 **Active Directory connection configured**
 
 ![AD DS Connection](/screenshots/09/02.png)
 
 ---
 
-## 5️⃣ Domain and OU Filtering
+## 5️⃣ Configure OU Filtering
 
-Selected:
+On the **Domain and OU Filtering** screen, select:
 
 ```
 Sync selected domains and OUs
 ```
 
-Enabled synchronization only for:
+Enable synchronization only for the following OUs:
 
-- OU=Departments  
+```
+OU=Departments,DC=bocorp,DC=local
+OU=Global,OU=_Groups,DC=bocorp,DC=local
+```
 
-📸 **OU Filtering**
+Deselect all other OUs and containers.
+
+📸 **OU filtering configured for the Departments OU**
 
 ![OU Filtering](/screenshots/09/03.png)
 
 ---
 
-### 🧠 Why OU-Based Filtering?
-
-- Prevents unnecessary object synchronization  
-- Reduces attack surface  
-- Avoids syncing infrastructure containers  
-
----
-
 ## 6️⃣ Optional Features
 
-Left default options except:
+On the **Optional Features** screen, leave all options at their defaults. Seamless SSO was already enabled on the Sign-In method screen in step 2.
 
-- Seamless SSO enabled  
+The following features were explicitly left disabled:
 
-Did NOT enable:
-
-- Password Writeback  
-- Device Writeback  
-- Group Writeback
-- Exchange Hybrid  
-- Azure AD App Proxy  
-
-These can be configured later if required.
+| Feature | Reason |
+|---------|--------|
+| Password Writeback | Not required — on-prem AD remains the authoritative password source |
+| Device Writeback | Handled by Hybrid Join configuration in Intune |
+| Group Writeback | Not required for this lab |
+| Exchange Hybrid | No on-premises Exchange server in this environment |
+| Azure AD App Proxy | Not required for this lab |
 
 ---
 
-## 7️⃣ Installation and Initial Synchronization
+## 7️⃣ Complete Installation
 
-Completed installation.
+Review the configuration summary and click **Install**. Entra Connect initiates the first synchronization cycle automatically after installation completes.
 
-Entra Connect automatically initiated the first synchronization cycle.
-
-📸 **Configuration Complete**
+📸 **Installation and initial synchronization complete**
 
 ![Configuration Complete](/screenshots/09/04.png)
 
 ---
 
-## 🔎 Post-Installation Validation
+## 🔎 Validation
 
----
+### Verify Synchronized Users in Microsoft Entra ID
 
-### Verify Users in Entra ID
-
-Navigate to:
+Navigate to the Microsoft 365 Admin Center and confirm that department users appear with `@bocorp.online` UPNs:
 
 ```
-Microsoft 365 admin center → Users → Active Users
+https://admin.cloud.microsoft → Users → Active Users
 ```
 
-Confirm:
-
-- Users appear in the directory  
-- Sign-in name uses `@bocorp.online`  
-
-📸 **Synced Users View**
+📸 **Synchronized users visible in Microsoft 365 Admin Center**
 
 ![Synced Users](/screenshots/09/05.png)
+
 ---
 
-### Test Cloud Authentication
+### Validate Cloud Authentication
 
-From a browser session:
+From a browser, sign in to Microsoft 365 using a synchronized user account:
 
-1. Navigate to:
-   ```
-   https://m365.cloud.microsoft
-   ```
-2. Sign in using:
-   ```
-   carlosmendez@bocorp.online
-   ```
+```
+https://m365.cloud.microsoft
+```
 
-Result:
+Enter credentials using the `@bocorp.online` UPN and confirm successful authentication. The password used must match the on-premises Active Directory password for the account.
 
-- Successful authentication  
-- Password matches on-prem credentials  
-
-📸 **Microsoft 365 Login Success**
+📸 **Microsoft 365 login successful with synchronized credentials**
 
 ![Microsoft 365 Login Success](/screenshots/09/06.png)
 
@@ -234,17 +202,13 @@ Result:
 
 ### Validate Seamless SSO
 
-From a domain-joined workstation inside the network:
+From a domain-joined workstation inside the lab network, open a browser and navigate to:
 
-1. Open a browser  
-2. Navigate to:
-   ```
-   https://m365.cloud.microsoft
-   ```
+```
+https://m365.cloud.microsoft
+```
 
-Result:
-
-- Automatic authentication without credential prompt  
+Confirm that authentication completes automatically without prompting for credentials.
 
 ---
 
@@ -252,8 +216,9 @@ Result:
 
 After completing this section:
 
-- Hybrid identity is fully operational  
-- Password Hash Synchronization is active  
-- Seamless SSO is enabled  
-- On-prem AD remains authoritative  
-- Users authenticate consistently across environments
+- Microsoft Entra Connect is installed and running on DC-01.
+- Password Hash Synchronization is active between `bocorp.local` and `bocorp.online`.
+- Seamless Single Sign-On is enabled for domain-joined workstations.
+- Only the `Departments` and `Global` OUs are synchronized to Microsoft Entra ID.
+- Synchronized users can authenticate to Microsoft 365 using their on-premises credentials.
+- The environment is ready for MFA and Conditional Access configuration.

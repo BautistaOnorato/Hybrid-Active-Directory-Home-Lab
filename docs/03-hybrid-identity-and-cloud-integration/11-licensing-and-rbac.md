@@ -1,106 +1,90 @@
-# 11 - Licensing and RBAC
+# 11 – Licensing and RBAC
 
 ---
 
 ## 🎯 Objective
 
-Implement a structured cloud governance model in Microsoft Entra ID by:
+Implement a structured cloud governance model in Microsoft Entra ID by configuring group-based licensing and Role-Based Access Control (RBAC).
 
-- Assigning Microsoft 365 licenses using group-based licensing  
-- Implementing Role-Based Access Control (RBAC)  
-- Enforcing the Principle of Least Privilege  
-- Separating identity management from administrative control  
-- Aligning hybrid identity with enterprise-grade cloud governance practices  
+This section covers:
 
-This configuration ensures scalability, security, and operational efficiency in the hybrid environment.
-
----
-
-## 🧱 Architectural Design Decision
-
-### 🔹 Licensing Model
-
-Licenses are assigned using **synchronized on-premises Global Security Groups**.
-
-This maintains consistency with the established identity model:
-
-> Accounts → Global Groups → Cloud Services
-
-On-premises Active Directory remains the authoritative source for identity grouping.
+- Assigning Microsoft 365 E3 licenses to synchronized on-premises security groups
+- Creating cloud-only role groups with assignable Entra ID roles
+- Delegating administrative roles following the Principle of Least Privilege
+- Validating automatic license assignment for department users
 
 ---
 
-### 🔹 RBAC Model
+## 🏗 Architecture Overview
 
-Administrative roles are assigned to **cloud-only security groups** created directly in Microsoft Entra ID.
+### Licensing Model
 
-This separation ensures:
+Licenses are assigned to synchronized Global Security Groups from on-premises Active Directory. When a user is added to a group on-premises, they synchronize to Entra ID and automatically inherit the assigned license — no manual per-user licensing is required.
 
-- Clear boundary between identity and administration  
-- Cloud governance independent from on-prem group structure  
-- Secure role delegation  
+```
+On-Prem AD
+GG-Finance-Users / GG-HR-Users / GG-IT-Users / GG-Sales-Users
+        ↓
+Synchronized to Microsoft Entra ID
+        ↓
+Group-Based License Assignment (Microsoft 365 E3)
+        ↓
+Users receive license automatically
+```
+
+### RBAC Model
+
+Administrative roles are assigned to dedicated cloud-only security groups created directly in Microsoft Entra ID. This maintains a clear boundary between identity management (on-premises) and cloud administrative control.
+
+```
+Cloud-Only Role Groups (Microsoft Entra ID)
+        ↓
+Entra ID Administrative Roles assigned to groups
+        ↓
+Users added to role groups receive delegated permissions
+```
+
+| Role Group | Entra ID Role | Capabilities |
+|------------|--------------|--------------|
+| `GRP-Cloud-License-Admins` | License Administrator | Assign and remove licenses, manage license-based services |
+| `GRP-Cloud-Helpdesk-Admins` | Helpdesk Administrator | Reset passwords, unlock accounts, manage basic user properties |
+| `GRP-Cloud-Security-Admins` | Security Administrator | Manage Conditional Access policies, configure security settings |
+| `GRP-Cloud-Security-Operators` | Security Operator | Investigate alerts, review incidents, monitor security dashboards |
 
 ---
 
-## 1️⃣ Group-Based Licensing
+## 1️⃣ Configure Group-Based Licensing
 
----
+### 1.1 Assign License to Global Security Groups
 
-### 📌 Design Overview
+Navigate to the Microsoft 365 Admin Center and open each synchronized Global Security Group:
 
-Licenses are assigned to synchronized Global Security Groups from Active Directory.
+```
+https://admin.cloud.microsoft → Teams & Groups → Active teams & groups → Security groups
+```
 
-Example:
+For each of the following groups, assign the **Microsoft 365 E3** license:
 
 ```
 GG-Finance-Users
+GG-HR-Users
+GG-IT-Users
+GG-Sales-Users
 ```
 
-When users are added to this group on-prem:
-
-1. They synchronize to Entra ID.  
-2. They automatically inherit the assigned license.  
-3. No manual per-user licensing is required.  
+Open the group → **Licenses and apps** → select **Microsoft 365 E3** → configure the desired apps → **Save changes**.
 
 ---
 
-### 🛠 Configuration Steps
+### 1.2 Validate Automatic License Assignment
 
-#### Step 1 – Assign License to Group
-
-Navigate to:
+Navigate to the Active Users list and confirm that department users show the license assigned:
 
 ```
-https://admin.cloud.microsoft.com → Teams & Groups → Active teams & groups → Security groups
+https://admin.cloud.microsoft → Users → Active users
 ```
 
-1. Open the synchronized group (e.g., `GG-Finance-Users`)  
-2. Select:
-   ```
-   Licenses and apps
-   ```
-3. Choose:
-   ```
-   Microsoft 365 E3
-   ```
-4. Configure desired apps  
-5. Click **Save changes**
-
----
-
-#### Step 3 – Validate Automatic Assignment
-
-Navigate to:
-
-```
-https://admin.cloud.microsoft.com → Users → Active users
-```
-
-Confirm the licenses column shows:
-
-```
-Microsoft 365 E3
-```
+Confirm the **Licenses** column shows `Microsoft 365 E3` for users in the licensed groups.
 
 📸 **User licenses showing Microsoft 365 E3**
 
@@ -108,157 +92,94 @@ Microsoft 365 E3
 
 ---
 
-### ✅ Operational Impact
+## 2️⃣ Configure Role-Based Access Control
 
-- Automated license provisioning  
-- Reduced administrative overhead  
-- Eliminates manual license errors  
-- Scalable onboarding process  
+All role groups were created directly in Microsoft Entra ID as cloud-only security groups with the **Azure AD roles can be assigned to the group** option enabled. This setting must be configured at group creation time and cannot be changed afterward.
+
+Navigate to:
+
+```
+portal.azure.com → Microsoft Entra ID → Groups → New group
+```
+
+For each group, set:
+
+| Setting | Value |
+|---------|-------|
+| Group type | Security |
+| Azure AD roles can be assigned to the group | Yes |
 
 ---
 
-## 2️⃣ Role-Based Access Control (RBAC)
+### 2.1 License Administrator
 
----
+**Group:** `GRP-Cloud-License-Admins`
 
-### 📌 Design Overview
-
-To implement secure cloud governance, administrative roles are assigned to dedicated **cloud-only role groups**.
-
-These groups were created with:
+Navigate to:
 
 ```
-Type: Security
-Azure AD roles can be assigned to the group: Enabled
+portal.azure.com → Microsoft Entra ID → Roles and administrators → License Administrator → Add assignments
 ```
 
-This allows Entra roles to be delegated through group membership.
+Assign the role to `GRP-Cloud-License-Admins`.
 
----
-
-### 🔐 Cloud Role Groups Created
-
-```
-GRP-Cloud-License-Admins
-GRP-Cloud-Helpdesk-Admins
-GRP-Cloud-Security-Admins
-GRP-Cloud-Security-Operators
-```
-
----
-
-## 2.1 License Administrator
-
-### Assigned Group
-
-```
-GRP-Cloud-License-Admins
-```
-
-### Role Assigned
-
-```
-License Administrator
-```
-
-### Capabilities
-
-- Assign and remove licenses  
-- Manage license-based services  
-- View license consumption  
-
-📸 **License Administrator role assignment**
+📸 **License Administrator role assigned to GRP-Cloud-License-Admins**
 
 ![License Administrator role assignment](/screenshots/11/02.png)
 
 ---
 
-## 2.2 Helpdesk Administrator
+### 2.2 Helpdesk Administrator
 
-### Assigned Group
+**Group:** `GRP-Cloud-Helpdesk-Admins`
 
-```
-GRP-Cloud-Helpdesk-Admins
-```
-
-### Role Assigned
+Navigate to:
 
 ```
-Helpdesk Administrator
+portal.azure.com → Microsoft Entra ID → Roles and administrators → Helpdesk Administrator → Add assignments
 ```
 
-### Capabilities
+Assign the role to `GRP-Cloud-Helpdesk-Admins`.
 
-- Reset passwords for non-privileged users  
-- Unlock accounts  
-- Manage basic user properties  
-
-📸 **Helpdesk Administrator role assignment**
+📸 **Helpdesk Administrator role assigned to GRP-Cloud-Helpdesk-Admins**
 
 ![Helpdesk Administrator role assignment](/screenshots/11/03.png)
 
 ---
 
-## 2.3 Security Administrator
+### 2.3 Security Administrator
 
-### Assigned Group
+**Group:** `GRP-Cloud-Security-Admins`
 
-```
-GRP-Cloud-Security-Admins
-```
-
-### Role Assigned
+Navigate to:
 
 ```
-Security Administrator
+portal.azure.com → Microsoft Entra ID → Roles and administrators → Security Administrator → Add assignments
 ```
 
-### Capabilities
+Assign the role to `GRP-Cloud-Security-Admins`.
 
-- Manage Conditional Access policies  
-- Configure security settings  
-- Monitor security posture  
-
-📸 **Security Administrator role assignment**
+📸 **Security Administrator role assigned to GRP-Cloud-Security-Admins**
 
 ![Security Administrator role assignment](/screenshots/11/04.png)
 
 ---
 
-## 2.4 Security Operator
+### 2.4 Security Operator
 
-### Assigned Group
+**Group:** `GRP-Cloud-Security-Operators`
 
-```
-GRP-Cloud-Security-Operators
-```
-
-### Role Assigned
+Navigate to:
 
 ```
-Security Operator
+portal.azure.com → Microsoft Entra ID → Roles and administrators → Security Operator → Add assignments
 ```
 
-### Capabilities
+Assign the role to `GRP-Cloud-Security-Operators`.
 
-- Investigate security alerts  
-- Review security incidents  
-- Respond to detected threats  
-- Monitor security dashboards  
-
-📸 **Security Operator role assignment**
+📸 **Security Operator role assigned to GRP-Cloud-Security-Operators**
 
 ![Security Operator role assignment](/screenshots/11/05.png)
-
----
-
-## 🔐 Security Model Achieved
-
-This implementation enforces:
-
-- Principle of Least Privilege  
-- Role separation  
-- Administrative boundary control  
 
 ---
 
@@ -266,7 +187,8 @@ This implementation enforces:
 
 After completing this section:
 
-- Licenses are assigned automatically via synchronized groups  
-- Administrative roles are delegated through cloud-based role groups  
-- Privilege escalation risk is minimized  
-- Hybrid identity governance is properly structured 
+- Microsoft 365 E3 licenses are assigned automatically to department users through synchronized Global Security Groups.
+- Four cloud-only role groups are created with assignable Entra ID roles.
+- Administrative permissions are delegated following the Principle of Least Privilege.
+- No licenses or administrative roles are assigned directly to individual user accounts.
+- The cloud governance model is decoupled from the on-premises group structure, maintaining a clear administrative boundary.

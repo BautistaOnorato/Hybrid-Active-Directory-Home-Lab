@@ -4,26 +4,57 @@
 
 ## 🎯 Objective
 
-Deploy and configure the first Domain Controller (DC01) that will host:
+Deploy and configure the Domain Controller (DC-01) that will serve as the core identity and network services authority for the lab environment.
 
-- Active Directory Domain Services (AD DS)
-- DNS Server
-- DHCP Server (later)
-- The core identity infrastructure of the lab
+This section covers:
 
-This server will become the authentication and directory authority for all domain-joined machines.
+- Creating and configuring the DC-01 virtual machine in Hyper-V
+- Installing Windows Server 2025
+- Performing initial server configuration (hostname and static IP)
+- Installing Active Directory Domain Services (AD DS)
+- Promoting the server to Domain Controller
+- Validating the deployment
 
 ---
 
-## 🖥 Virtual Machine Configuration
+## 🏗 Architecture Overview
 
-### General Settings
+DC-01 is the foundational server of the lab. All other components depend on it for authentication, name resolution, and directory services.
 
-- VM Name: DC01
-- Startup Memory: 4096 MB
-- Processor: 2 vCPU
-- Virtual Disk: 80 GB (VHDX)
-- Installation Media: Windows Server 2025 Standard Evaluation (Desktop Experience)
+| Role | Details |
+|------|---------|
+| Active Directory Domain Services | Authoritative identity source for `bocorp.local` |
+| DNS Server | Resolves internal hostnames and forwards external queries |
+| Domain | `bocorp.local` |
+| NetBIOS Name | `BOCORP` |
+
+---
+
+## 1️⃣ Virtual Machine Configuration
+
+A new virtual machine was created in Hyper-V with the following settings:
+
+| Setting | Value |
+|---------|-------|
+| VM Name | DC-01 |
+| Startup Memory | 4096 MB |
+| Dynamic Memory | Disabled |
+| Processor | 2 vCPU |
+| Virtual Disk | 80 GB (VHDX) |
+| Network Adapter | BOCORP-SW01 |
+| Installation Media | Windows Server 2025 Standard Evaluation (Desktop Experience) |
+
+---
+
+## 2️⃣ Windows Server Installation
+
+Boot the virtual machine using the Windows Server 2025 ISO and proceed with the installation wizard.
+
+When prompted for the edition, select:
+
+```
+Windows Server 2025 Standard Evaluation (Desktop Experience)
+```
 
 📸 **Installation setup screen with edition selection**
 
@@ -35,57 +66,75 @@ This server will become the authentication and directory authority for all domai
 
 ---
 
-## 🛠 Initial Server Configuration
+## 3️⃣ Initial Server Configuration
 
-After the first login:
+### 3.1 Rename the Server
 
-### 1. Rename the Server
+Open **System Properties** and rename the server to:
 
-Rename the server to DC01 and restart it to apply the change.
+```
+DC-01
+```
 
-📸 **Screenshot showing changed computer name**
+Restart the machine to apply the change.
+
+📸 **System Properties showing the new computer name**
 
 ![Screenshot showing changed computer name](/screenshots/02/03.png)
 
 ---
 
-### 2. Configure Static IP Address
+### 3.2 Configure Static IP Address
 
-Because this machine will host DNS and Active Directory, it must use a static IP address.
+Because this machine hosts DNS and Active Directory, it must use a static IP address. A dynamic address would break domain operations if it changed.
 
-Example configuration used in the lab:
+Open **Network Adapter Settings** and configure the following:
 
-- IP Address: 10.10.10.10
-- Subnet Mask: 255.255.255.0
-- Default Gateway: 10.10.10.1
-- Preferred DNS Server: 10.10.10.10
+| Parameter | Value |
+|-----------|-------|
+| IP Address | 10.10.10.10 |
+| Subnet Mask | 255.255.255.0 |
+| Default Gateway | 10.10.10.1 |
+| Preferred DNS Server | 10.10.10.10 |
 
-📸 **Network settings showing static IP and DNS config**
+> The DNS server is set to the machine's own IP. After AD DS is installed, DC-01 will host the DNS zone for `bocorp.local` and must resolve its own name correctly.
+
+📸 **Network settings showing static IP and DNS configuration**
 
 ![Network settings showing static IP and DNS config](/screenshots/02/04.png)
 
 ---
 
-## 📦 Install Active Directory Domain Services
+## 4️⃣ Install Active Directory Domain Services
 
-Install the Active Directory Domain Services role along with the required management tools.
+Open **Server Manager** and add the AD DS role:
 
-📸 **"Add Roles and Features Wizard" with AD DS selected**
+```
+Server Manager → Add Roles and Features → Active Directory Domain Services
+```
 
-!["Add Roles and Features Wizard" with AD DS selected](/screenshots/02/05.png)
+Include the required management tools when prompted.
+
+📸 **Add Roles and Features Wizard with AD DS selected**
+
+![Add Roles and Features Wizard with AD DS selected](/screenshots/02/05.png)
 
 ---
 
-## 🌳 Promote Server to Domain Controller
+## 5️⃣ Promote Server to Domain Controller
 
-Promote the server by:
+After the role is installed, promote the server to Domain Controller using the post-installation wizard in Server Manager.
 
-- Creating a new forest
-- Defining the root domain name as: bocorp.local
-- Setting the NetBIOS name as: BOCORP
-- Defining the Directory Services Restore Mode (DSRM) password
+Configure the following:
 
-The server will automatically reboot after the promotion process completes.
+| Setting | Value |
+|---------|-------|
+| Deployment operation | Add a new forest |
+| Root domain name | `bocorp.local` |
+| NetBIOS name | `BOCORP` |
+| DSRM password | (set a strong password) |
+
+Leave all other settings at their defaults and complete the wizard. The server will automatically reboot after the promotion process completes.
 
 📸 **Domain configuration summary**
 
@@ -93,21 +142,30 @@ The server will automatically reboot after the promotion process completes.
 
 ---
 
-## 🔎 Post-Installation Checks
+## 🔎 Post-Installation Validation
 
-After reboot:
+After the reboot, log in using:
 
-- Logged in using BOCORP\Administrator
-- Confirmed the domain bocorp.local exists
-- Verified domain controller health using dcdiag in PowerShell
-- Verified Active Directory Users and Computers is accessible
-- Verified DNS Manager shows the proper forward lookup zone
+```
+BOCORP\Administrator
+```
 
 📸 **Login screen showing BOCORP\Administrator**
 
-![Log in screen showing BOCORP\Administrator](/screenshots/02/07.png)
+![Login screen showing BOCORP\Administrator](/screenshots/02/07.png)
 
-📸 **DNS Manager showing forward lookup zone for ```bocorp.local```**
+Run the following command in PowerShell to verify domain controller health:
+
+```powershell
+dcdiag
+```
+
+Confirm the following in Server Manager and administrative tools:
+
+- Active Directory Users and Computers is accessible
+- DNS Manager shows the forward lookup zone for `bocorp.local`
+
+📸 **DNS Manager showing forward lookup zone for bocorp.local**
 
 ![DNS Manager showing forward lookup zone for bocorp.local](/screenshots/02/08.png)
 
@@ -115,9 +173,10 @@ After reboot:
 
 ## ✅ Outcome
 
-By completing this phase:
+After completing this section:
 
-- A Windows Server virtual machine was successfully deployed.
-- The server was renamed and configured with a static IP address.
-- Active Directory Domain Services was installed.
-- DC01 is now the authoritative identity and DNS server for the lab environment.
+- DC-01 is deployed as a Windows Server 2025 virtual machine.
+- The server is configured with a static IP address and self-referencing DNS.
+- Active Directory Domain Services is installed and operational.
+- DC-01 is the authoritative identity and DNS server for `bocorp.local`.
+- The environment is ready for client deployment and domain join.

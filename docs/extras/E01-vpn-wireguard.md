@@ -8,14 +8,14 @@ Deploy a WireGuard VPN gateway to enable secure remote access to the lab network
 
 This implementation provides:
 
-- Encrypted tunnel between an external client and the lab network
+- An encrypted tunnel between an external client and the lab network
 - Access to internal resources (DC-01, file shares, DNS) from outside the lab
 - A dedicated VPN gateway server with dual network interfaces
 - A realistic simulation of remote access without relying on cloud services
 
 ---
 
-## 🧠 Architectural Context
+## 🏗 Architecture Overview
 
 The lab network (`10.10.10.0/24`) is isolated behind a NAT configured on the host machine. Virtual machines on the internal switch (`BOCORP-SW01`) can reach the internet through the host, but external devices have no direct path into the lab network.
 
@@ -32,12 +32,10 @@ Several VPN protocols were evaluated before selecting WireGuard:
 
 | Protocol | Reason Discarded |
 |----------|-----------------|
-| PPTP | Obsolete, known cryptographic vulnerabilities |
+| PPTP | Obsolete — known cryptographic vulnerabilities |
 | L2TP/IPSec | Ports 500 and 4500 occupied by Windows host system service |
 | SSTP | Requires PKI infrastructure and certificate management |
-| WireGuard | ✔ Modern, secure, simple, configurable port |
-
-WireGuard uses a fully configurable UDP port (`51820`), avoids conflicts with the host system, and is the recommended modern VPN protocol for new deployments.
+| WireGuard | ✔ Modern, secure, simple, fully configurable UDP port |
 
 ### Why a Dedicated Server?
 
@@ -51,7 +49,7 @@ WS-01 (192.168.1.100) – External Network
         |  WireGuard Tunnel (UDP 51820)
         ▼
 VPN-01 eth1 (192.168.1.39) – External Interface
-VPN-01 eth0 (10.10.10.30) – Internal Interface
+VPN-01 eth0 (10.10.10.30)  – Internal Interface
         |
         |  IP Forwarding + NAT (iptables)
         ▼
@@ -65,19 +63,17 @@ DC-01, File Shares, DNS
 
 | Component | Value |
 |-----------|-------|
-| Lab network | 10.10.10.0/24 |
-| VPN tunnel network | 10.10.20.0/24 |
-| VPN-01 internal IP | 10.10.10.30 |
-| VPN-01 external IP | 192.168.1.39 (Static) |
-| VPN-01 tunnel IP | 10.10.20.1 |
-| Client tunnel IP | 10.10.20.2 |
-| WireGuard port | UDP 51820 |
+| Lab network | `10.10.10.0/24` |
+| VPN tunnel network | `10.10.20.0/24` |
+| VPN-01 internal IP | `10.10.10.30` |
+| VPN-01 external IP | `192.168.1.39` (static) |
+| VPN-01 tunnel IP | `10.10.20.1` |
+| Client tunnel IP | `10.10.20.2` |
+| WireGuard port | UDP `51820` |
 
 ---
 
 ## 1️⃣ VPN-01 Server Deployment
-
----
 
 ### 1.1 Virtual Machine Configuration
 
@@ -93,7 +89,7 @@ A new virtual machine was created in Hyper-V with the following settings:
 | Network Adapter | BOCORP-SW01 |
 | Installation Media | Debian 13.3.0 (Trixie) |
 
-📸 **VPN-01 VM Settings**
+📸 **VPN-01 VM settings**
 
 ![VPN-01 VM Settings](/screenshots/E01/01.png)
 
@@ -103,16 +99,16 @@ A new virtual machine was created in Hyper-V with the following settings:
 
 Debian 13 was installed with a minimal configuration:
 
-- **Hostname:** VPN-01
-- **Domain:** bocorp.local
-- **Partitioning:** Guided – use entire disk
-- **Software selection:**
-  - ✔ SSH Server
-  - ✔ Standard System Utilities
+| Setting | Value |
+|---------|-------|
+| Hostname | `VPN-01` |
+| Domain | `bocorp.local` |
+| Partitioning | Guided – use entire disk |
+| Software selection | SSH Server, Standard System Utilities |
 
 No graphical interface was installed to keep the server lightweight.
 
-📸 **Debian Installation – Software Selection**
+📸 **Debian installation – software selection**
 
 ![Debian Installation – Software Selection](/screenshots/E01/02.png)
 
@@ -122,7 +118,7 @@ No graphical interface was installed to keep the server lightweight.
 
 #### Static IP for eth0 (Internal Interface)
 
-Edited `/etc/network/interfaces`:
+Edit `/etc/network/interfaces`:
 
 ```
 source /etc/network/interfaces.d/*
@@ -138,28 +134,27 @@ iface eth0 inet static
     dns-nameservers 10.10.10.10
 ```
 
-Applied the configuration:
+Apply the configuration:
 
 ```bash
 systemctl restart networking
 ```
 
-#### Add Second Network Interface (External)
+#### Add a Second Network Interface (External)
 
 A second network adapter was added to VPN-01 in Hyper-V Manager:
 
-1. Right-click **VPN-01** → **Settings**
-2. **Add Hardware** → **Network Adapter** → **Add**
-3. Select **BOCORP-EXTERNAL-SW01**
-4. Click **Apply** → **OK**
+```
+VPN-01 → Settings → Add Hardware → Network Adapter → BOCORP-EXTERNAL-SW01 → Apply
+```
 
-📸 **Second Network Adapter Added**
+📸 **Second network adapter added**
 
 ![Second Network Adapter Added](/screenshots/E01/03.png)
 
-#### DHCP Configuration for eth1 (External Interface)
+#### Static IP for eth1 (External Interface)
 
-The new interface (`eth1`) was configured to obtain an IP address automatically from the home network:
+Add the following block to `/etc/network/interfaces`:
 
 ```
 auto eth1
@@ -168,13 +163,13 @@ iface eth1 inet static
     netmask 255.255.255.0
 ```
 
-Applied the configuration:
+Apply the configuration:
 
 ```bash
 systemctl restart networking
 ```
 
-📸 **Network Interfaces Showing Both eth0 and eth1**
+📸 **Network interfaces showing both eth0 and eth1**
 
 ![Network Interfaces](/screenshots/E01/04.png)
 
@@ -190,8 +185,6 @@ apt update && apt upgrade -y
 
 ## 2️⃣ WireGuard Installation
 
----
-
 ### 2.1 Install WireGuard
 
 ```bash
@@ -200,7 +193,7 @@ apt install wireguard -y
 
 ### 2.2 Install iptables
 
-Required for the NAT rules used by WireGuard's PostUp/PostDown hooks:
+Required for the NAT rules used by WireGuard's `PostUp`/`PostDown` hooks:
 
 ```bash
 apt install iptables -y
@@ -211,8 +204,6 @@ apt install iptables -y
 ## 3️⃣ Key Generation
 
 WireGuard uses asymmetric cryptography. Each peer (server and client) has its own private/public key pair. The public key is shared with the other peer — the private key never leaves the local machine.
-
----
 
 ### 3.1 Generate Server Keys
 
@@ -233,7 +224,7 @@ cat client_private.key
 cat client_public.key
 ```
 
-> The client keys are generated on VPN-01 for convenience and then transferred to the client during configuration. The client private key must be kept secret.
+> The client keys are generated on VPN-01 for convenience and then transferred to the client during configuration. The client private key must be kept secret and must never be shared.
 
 ---
 
@@ -241,13 +232,13 @@ cat client_public.key
 
 IP forwarding allows VPN-01 to route traffic between the WireGuard tunnel interface (`wg0`) and the internal lab network interface (`eth0`).
 
-Added to `/etc/sysctl.conf`:
+Add the following line to `/etc/sysctl.conf`:
 
 ```
 net.ipv4.ip_forward=1
 ```
 
-Applied immediately:
+Apply immediately:
 
 ```bash
 sysctl -p
@@ -257,7 +248,7 @@ sysctl -p
 
 ## 5️⃣ Server Configuration
 
-Created `/etc/wireguard/wg0.conf`:
+Create `/etc/wireguard/wg0.conf`:
 
 ```ini
 [Interface]
@@ -279,12 +270,12 @@ AllowedIPs = 10.10.20.2/32
 | `Address` | IP assigned to the WireGuard tunnel interface on VPN-01 |
 | `ListenPort` | UDP port WireGuard listens on |
 | `PostUp` | Enables IP forwarding and NAT when the tunnel comes up |
-| `PostDown` | Removes the rules when the tunnel goes down |
+| `PostDown` | Removes the iptables rules when the tunnel goes down |
 | `[Peer] AllowedIPs` | Defines which tunnel IP the client is allowed to use |
 
 ---
 
-## 6️⃣ Start WireGuard Service
+## 6️⃣ Start the WireGuard Service
 
 ```bash
 systemctl enable wg-quick@wg0
@@ -292,11 +283,11 @@ systemctl start wg-quick@wg0
 systemctl status wg-quick@wg0
 ```
 
-📸 **WireGuard Service Active**
+📸 **WireGuard service active**
 
 ![WireGuard Service Active](/screenshots/E01/05.png)
 
-Verified the interface and listening port:
+Verify the interface and listening port:
 
 ```bash
 wg show
@@ -312,19 +303,21 @@ wg show
 
 WS-01 was connected to the external network switch (`External Switch`) to simulate being outside the corporate network. With this configuration, WS-01 has no direct access to the lab network (`10.10.10.0/24`).
 
-### 8.1 Install WireGuard on WS-01
+### 7.1 Install WireGuard on WS-01
 
-Downloaded and installed WireGuard from:
+Download and install WireGuard from the official site:
 
 ```
 https://www.wireguard.com/install/
 ```
 
-### 8.2 Configure the Tunnel
+### 7.2 Configure the Tunnel
 
-Opened the WireGuard application and created a new tunnel:
+Open the WireGuard application and create a new tunnel:
 
-**Add Tunnel → Add empty tunnel**
+```
+Add Tunnel → Add empty tunnel
+```
 
 Configuration used:
 
@@ -346,23 +339,23 @@ PersistentKeepalive = 25
 | Setting | Purpose |
 |---------|---------|
 | `Address` | IP assigned to the WireGuard tunnel interface on WS-01 |
-| `DNS` | Uses DC-01 as DNS server through the tunnel |
+| `DNS` | Uses DC-01 as the DNS server through the tunnel |
 | `[Peer] PublicKey` | VPN-01's public key |
 | `AllowedIPs` | Traffic destined for these networks is routed through the tunnel |
 | `Endpoint` | VPN-01's external IP and WireGuard port |
 | `PersistentKeepalive` | Keeps the tunnel alive through NAT |
 
-📸 **WireGuard Client Configuration on WS-01**
+📸 **WireGuard client configuration on WS-01**
 
 ![WireGuard Client Configuration](/screenshots/E01/07.png)
 
 ---
 
-## 9️⃣ Static Route on DC-01
+## 8️⃣ Static Route on DC-01
 
-DC-01 needs a route to reach the WireGuard tunnel network (`10.10.20.0/24`) in order to send responses back to VPN clients. Without this route, DC-01 would not know how to respond to requests coming from `10.10.20.2`.
+DC-01 needs a route to reach the WireGuard tunnel network (`10.10.20.0/24`) in order to send responses back to VPN clients. Without this route, DC-01 would not know how to respond to requests originating from `10.10.20.2`.
 
-On **DC-01**, executed in PowerShell:
+On **DC-01**, run the following command in PowerShell:
 
 ```powershell
 New-NetRoute -DestinationPrefix "10.10.20.0/24" -NextHop "10.10.10.30" -InterfaceAlias "Ethernet"
@@ -376,18 +369,15 @@ This tells DC-01 that traffic destined for the VPN tunnel network should be forw
 
 ### Tunnel Establishment
 
-Activated the tunnel on WS-01 and verified the handshake on VPN-01:
+Activate the tunnel on WS-01 and verify the handshake on VPN-01:
 
 ```bash
 wg show
 ```
 
-Expected output confirms:
+Confirm the output shows a peer with a recent handshake and bytes transferred in both directions.
 
-- Peer connected with a recent handshake
-- Bytes transferred in both directions
-
-📸 **wg show – Handshake Established**
+📸 **wg show – handshake established**
 
 ![wg show Handshake](/screenshots/E01/08.png)
 
@@ -405,11 +395,11 @@ nslookup bocorp.local
 ```
 
 | Test | Result |
-|------|----------------|
-| Ping VPN-01 tunnel IP | ✔ Reply from 10.10.20.1 |
-| Ping DC-01 | ✔ Reply from 10.10.10.10 |
-| Ping VPN-01 internal IP | ✔ Reply from 10.10.10.30 |
-| DNS resolution | ✔ bocorp.local resolved via DC-01 |
+|------|--------|
+| Ping VPN-01 tunnel IP (`10.10.20.1`) | ✔ Reply received |
+| Ping DC-01 (`10.10.10.10`) | ✔ Reply received |
+| Ping VPN-01 internal IP (`10.10.10.30`) | ✔ Reply received |
+| DNS resolution (`bocorp.local`) | ✔ Resolved via DC-01 |
 
 ---
 
@@ -421,15 +411,15 @@ Accessed the IT departmental share from WS-01 through the VPN tunnel:
 \\DC-01\IT
 ```
 
-Access was granted using domain credentials, confirming end-to-end functionality.
+Access was granted using domain credentials, confirming end-to-end functionality across the tunnel.
 
-📸 **File Share Access Attempt Before Handshake**
+📸 **File share access attempt before tunnel handshake**
 
-![File Share Access](/screenshots/E01/09.png)
+![File Share Access Before](/screenshots/E01/09.png)
 
-📸 **File Share Access Through VPN**
+📸 **File share access through VPN tunnel**
 
-![File Share Access](/screenshots/E01/10.png)
+![File Share Access Through VPN](/screenshots/E01/10.png)
 
 ---
 
@@ -437,9 +427,9 @@ Access was granted using domain credentials, confirming end-to-end functionality
 
 After completing this implementation:
 
-- VPN-01 is deployed as a dedicated WireGuard gateway.
+- VPN-01 is deployed as a dedicated WireGuard gateway with dual network interfaces.
 - WS-01 can establish an encrypted tunnel from an external network.
 - All lab resources are accessible through the VPN tunnel.
-- DNS resolution works correctly through DC-01.
+- DNS resolution works correctly through DC-01 over the tunnel.
 - Domain file shares are accessible using domain credentials.
 - The implementation simulates a realistic enterprise remote access scenario.

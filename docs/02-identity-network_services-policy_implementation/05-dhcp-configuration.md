@@ -1,133 +1,135 @@
-# 05 - DHCP Configuration
+# 05 – DHCP Configuration
 
 ---
 
 ## 🎯 Objective
 
-Deploy and configure a DHCP Server on DC-01 to:
+Deploy and configure the DHCP Server role on DC-01 to provide automated IP address assignment for all domain-joined clients.
 
-- Automatically assign IP addresses to domain workstations
-- Provide correct DNS and gateway configuration
-- Integrate with Active Directory
-- Enable dynamic DNS registration
-- Prepare the network layer for domain-joined clients
+This section covers:
 
-This phase establishes automated network configuration for the Bocorp lab environment.
+- Installing the DHCP Server role on DC-01
+- Authorizing the DHCP server in Active Directory
+- Creating and configuring the IP address scope
+- Validating dynamic IP assignment on WS-01 and WS-02
 
 ---
 
-## 1. DHCP Role Installation
+## 🏗 Architecture Overview
 
-The DHCP Server role was installed on **DC-01** using Server Manager.
+The DHCP server is hosted on DC-01 and serves the `10.10.10.0/24` subnet used by all lab virtual machines.
 
-### Installation Steps
+| Parameter | Value |
+|-----------|-------|
+| DHCP Server | DC-01 (10.10.10.10) |
+| Scope Name | Bocorp WS Scope |
+| IP Range | 10.10.10.100 – 10.10.10.200 |
+| Subnet Mask | 255.255.255.0 |
+| Default Gateway | 10.10.10.1 |
+| DNS Server | 10.10.10.10 (DC-01) |
+| DNS Domain Name | bocorp.local |
+| Lease Duration | 1 day |
 
-1. Open **Server Manager**
-2. Select **Add Roles and Features**
-3. Choose **Role-based or feature-based installation**
-4. Select **DHCP Server**
-5. Complete the wizard and install
+> In a production environment, DHCP should be hosted on a dedicated member server to maintain role separation. For this lab, hosting it on DC-01 is acceptable given the limited scope of the environment.
 
-After installation, the DHCP service was configured and authorized in Active Directory.
+---
 
-📸 **DHCP Role Installation Summary**
+## 1️⃣ Install the DHCP Server Role
+
+Open **Server Manager** on DC-01 and add the DHCP Server role:
+
+```
+Server Manager → Add Roles and Features → DHCP Server
+```
+
+Complete the wizard and install the role.
+
+📸 **DHCP role installation summary**
 
 ![DHCP Role Installation Summary](/screenshots/05/01.png)
 
 ---
 
-## 2. DHCP Authorization in Active Directory
+## 2️⃣ Authorize the DHCP Server in Active Directory
 
-In a domain environment, DHCP servers must be authorized in Active Directory.
+In a domain environment, DHCP servers must be authorized in Active Directory before they can issue leases. This prevents rogue DHCP servers from distributing IP configuration to domain clients.
 
-This prevents rogue DHCP servers from distributing IP addresses inside the domain.
+Open the **DHCP Management Console** and authorize the server:
 
-### Authorization Process
+```
+DHCP Management Console → Right-click the server → Authorize
+```
 
-- Open **DHCP Management Console**
-- Right-click the server
-- Select **Authorize**
-- Refresh to confirm status is **Authorized**
-
-This ensures only trusted servers can provide IP configuration within the domain.
+Refresh the console and confirm the server status changes to **Authorized**.
 
 ---
 
-## 3. Scope Configuration
+## 3️⃣ Create and Configure the Scope
 
-A new IPv4 scope was created with the following configuration:
-
-### Scope Name
-```
-Bocorp WS Scope
-```
-
-### IP Address Range
-```
-Start IP: 10.10.10.100
-End IP:   10.10.10.200
-```
-
-### Subnet Mask
-```
-255.255.255.0
-```
-
-### Option 003 – Router (Default Gateway)
-```
-10.10.10.1
-```
-
-### Option 006 – DNS Servers
-```
-10.10.10.10 (DC-01)
-```
-
-### Option 015 – DNS Domain Name
-```
-bocorp.local
-```
----
-
-## 4. Lease Duration
-
-Lease duration was configured to:
+Open the **DHCP Management Console** and create a new IPv4 scope:
 
 ```
-1 day
+DHCP Management Console → IPv4 → Right-click → New Scope
 ```
 
-Using a shorter lease duration in a lab environment allows:
+Configure the scope with the following settings:
 
-- Easier testing
-- Faster renewal validation
-- Quick scope adjustments if needed
+### Scope Settings
 
-📸 **DHCP Scope and Lease configuration**
+| Setting | Value |
+|---------|-------|
+| Scope Name | Bocorp WS Scope |
+| Start IP | 10.10.10.100 |
+| End IP | 10.10.10.200 |
+| Subnet Mask | 255.255.255.0 |
+| Lease Duration | 1 day |
+
+### Scope Options
+
+| Option | Value |
+|--------|-------|
+| 003 – Router | 10.10.10.1 |
+| 006 – DNS Servers | 10.10.10.10 |
+| 015 – DNS Domain Name | bocorp.local |
+
+> A 1-day lease duration was configured to keep the lab flexible. Short leases allow IP addresses to be reclaimed quickly when machines are powered off, which is common in a lab environment.
+
+📸 **DHCP scope and lease configuration**
 
 ![DHCP Scope and Lease configuration](/screenshots/05/02.png)
 
 ---
 
-## 6. Validation
+## 🔎 Validation
 
-After configuration, both workstations were checked to validate that the DHCP server was functioning correctly:
+On each workstation, release and renew the IP address to confirm the DHCP server is issuing leases correctly:
 
-1. Both workstations were set to obtain IP addresses automatically.
-2. Ran ```ipconfig /release``` followed by ```ipconfig /renew```.
-3. Verified that each client received an IP address from the DHCP scope.
+```powershell
+ipconfig /release
+ipconfig /renew
+ipconfig /all
+```
 
-📸 **WS-01 Validation**
+Confirm the following in the output:
+
+- IP address is within the `10.10.10.100–200` range
+- Default Gateway is `10.10.10.1`
+- DNS Server is `10.10.10.10`
+- DHCP Server shows `10.10.10.10`
+
+📸 **WS-01 IP configuration after DHCP renewal**
 
 ![WS-01 Validation](/screenshots/05/03.png)
+
 ![WS-01 Validation](/screenshots/05/04.png)
 
-📸 **WS-02 Validation**
+📸 **WS-02 IP configuration after DHCP renewal**
 
 ![WS-02 Validation](/screenshots/05/05.png)
+
 ![WS-02 Validation](/screenshots/05/06.png)
 
-📸 **DHCP Address Leases Showing Both Clients**
+📸 **DHCP address leases showing both clients**
 
 ![DHCP Address Leases Showing Both Clients](/screenshots/05/07.png)
 
@@ -135,8 +137,10 @@ After configuration, both workstations were checked to validate that the DHCP se
 
 ## ✅ Outcome
 
-After completing this configuration:
+After completing this section:
 
-- DC-01 provides centralized IP management.
-- Workstations automatically receive valid network configuration.
-- DNS and Active Directory integration is fully operational.
+- The DHCP Server role is installed and authorized on DC-01.
+- The `Bocorp WS Scope` issues addresses in the `10.10.10.100–200` range.
+- Scope options distribute the correct gateway, DNS server, and domain name to all clients.
+- WS-01 and WS-02 are receiving valid IP configuration dynamically.
+- The network layer is fully automated for all domain-joined endpoints.

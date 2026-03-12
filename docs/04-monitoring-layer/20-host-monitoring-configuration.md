@@ -8,75 +8,70 @@ Register all Windows hosts in the Zabbix web interface and assign monitoring tem
 
 This section covers:
 
-- Creating a host group to organize lab machines
+- Verifying DNS resolution of workstation hostnames from MON-01
+- Creating a host group to organize all lab machines
 - Registering DC-01, WS-01, and WS-02 in Zabbix
 - Assigning the Windows monitoring template to each host
-- Using DNS names instead of static IPs for workstation interfaces
-- Validating metric collection from monitored hosts
+- Validating agent connectivity and metric collection
 
 ---
 
-## 🧠 Design Decision – DNS Names for Workstation Interfaces
+## 🏗 Architecture Overview
 
-Since WS-01 and WS-02 obtain their IP addresses dynamically via DHCP, using static IPs in Zabbix would cause connectivity failures whenever the lease changes.
+### Interface Configuration Strategy
 
-To avoid this, the Zabbix agent interface for workstations was configured using **DNS names** instead of IPs:
+DC-01 is registered using its static IP address since it never changes. WS-01 and WS-02 are registered using DNS names instead of static IPs because they obtain addresses dynamically via DHCP.
 
-```
-WS-01.bocorp.local
-WS-02.bocorp.local
-```
+| Host | Interface Type | Value |
+|------|---------------|-------|
+| DC-01 | IP | `10.10.10.10` |
+| WS-01 | DNS | `WS-01.bocorp.local` |
+| WS-02 | DNS | `WS-02.bocorp.local` |
 
-MON-01 uses DC-01 (10.10.10.10) as its DNS server, which means it can resolve all bocorp.local hostnames correctly.
+Using DNS names for workstations ensures Zabbix always resolves the current IP at connection time. If a DHCP lease changes, no reconfiguration is needed in Zabbix — the DNS record in DC-01 updates automatically and Zabbix continues collecting metrics without interruption.
 
-This approach ensures:
-
-- Zabbix always resolves the current IP at connection time
-- No manual reconfiguration is needed if a DHCP lease changes
-- The design remains clean without requiring static IPs or DHCP reservations on the workstations
-
-DC-01 was registered using its static IP (10.10.10.10) since its address never changes.
+MON-01 uses DC-01 (`10.10.10.10`) as its DNS server, which means it can resolve all `bocorp.local` hostnames correctly.
 
 ---
 
-## 1. Verify DNS Resolution from MON-01
+## 1️⃣ Verify DNS Resolution from MON-01
 
-Before registering the hosts, DNS resolution was confirmed from MON-01:
+Before registering the hosts, confirm that MON-01 can resolve the workstation hostnames:
 
 ```bash
 nslookup WS-01.bocorp.local
 nslookup WS-02.bocorp.local
 ```
 
-![nslookup](/screenshots/20/01.png)
+Both queries should return the current DHCP-assigned IP address for each workstation.
+
+![DNS resolution from MON-01](/screenshots/20/01.png)
 
 ---
 
-## 2. Create Host Group
+## 2️⃣ Create Host Group
 
-A dedicated host group was created to organize all lab machines under a single logical container.
+A dedicated host group was created to organize all lab machines under a single logical container, making it easier to apply templates, actions, and maintenance windows across the environment.
 
 Navigate to:
 
 ```
-Data Collection → Host Groups
+Data Collection → Host Groups → Create host group
 ```
-
-Click **Create host group**.
 
 | Field | Value |
 |-------|-------|
-| Group name | Bocorp |
+| Group name | `Bocorp` |
 
 Click **Add**.
 
-📸 **Host group created**
+📸 **Bocorp host group created**
 
 ![Host group created](/screenshots/20/02.png)
 
 ---
 
-## 3. Register Hosts in Zabbix
+## 3️⃣ Register Hosts in Zabbix
 
 Each host was registered individually through the Zabbix web interface.
 
@@ -90,30 +85,28 @@ Data Collection → Hosts → Create host
 
 ### 3.1 DC-01
 
-#### Tab: Host
+**Tab: Host**
 
 | Field | Value |
 |-------|-------|
-| Host name | DC-01 |
-| Host groups | Bocorp Lab |
-| Interfaces → Type | Agent |
-| Interfaces → Connect to | IP |
-| Interfaces → IP | 10.10.10.10 |
-| Interfaces → Port | 10050 |
+| Host name | `DC-01` |
+| Host groups | `Bocorp` |
+| Interface type | Agent |
+| Connect to | IP |
+| IP address | `10.10.10.10` |
+| Port | `10050` |
 
-#### Tab: Templates
+**Tab: Templates**
 
-Click **Select** → search for:
+Search for and select:
 
 ```
 Windows by Zabbix agent
 ```
 
-Select the template → click **Select**.
-
 Click **Add** to save the host.
 
-📸 **DC-01 settings**
+📸 **DC-01 host configuration**
 
 ![DC-01 settings](/screenshots/20/03.png)
 
@@ -121,26 +114,28 @@ Click **Add** to save the host.
 
 ### 3.2 WS-01
 
-#### Tab: Host
+**Tab: Host**
 
 | Field | Value |
 |-------|-------|
-| Host name | WS-01 |
-| Host groups | Bocorp Lab |
-| Interfaces → Type | Agent |
-| Interfaces → Connect to | DNS |
-| Interfaces → DNS name | WS-01.bocorp.local |
-| Interfaces → Port | 10050 |
+| Host name | `WS-01` |
+| Host groups | `Bocorp` |
+| Interface type | Agent |
+| Connect to | DNS |
+| DNS name | `WS-01.bocorp.local` |
+| Port | `10050` |
 
-#### Tab: Templates
+**Tab: Templates**
+
+Search for and select:
 
 ```
 Windows by Zabbix agent
 ```
 
-Click **Add** to save.
+Click **Add** to save the host.
 
-📸 **WS-01 settings**
+📸 **WS-01 host configuration**
 
 ![WS-01 settings](/screenshots/20/04.png)
 
@@ -148,51 +143,53 @@ Click **Add** to save.
 
 ### 3.3 WS-02
 
-#### Tab: Host
+**Tab: Host**
 
 | Field | Value |
 |-------|-------|
-| Host name | WS-02 |
-| Host groups | Bocorp Lab |
-| Interfaces → Type | Agent |
-| Interfaces → Connect to | DNS |
-| Interfaces → DNS name | WS-02.bocorp.local |
-| Interfaces → Port | 10050 |
+| Host name | `WS-02` |
+| Host groups | `Bocorp` |
+| Interface type | Agent |
+| Connect to | DNS |
+| DNS name | `WS-02.bocorp.local` |
+| Port | `10050` |
 
-#### Tab: Templates
+**Tab: Templates**
+
+Search for and select:
 
 ```
 Windows by Zabbix agent
 ```
 
-Click **Add** to save.
+Click **Add** to save the host.
 
-📸 **WS-02 settings**
+📸 **WS-02 host configuration**
 
 ![WS-02 settings](/screenshots/20/05.png)
 
 ---
 
-## 4. Verify Host Availability
+## 🔎 Validation
 
-After registering all hosts, Zabbix initiates communication with each agent. Allow a few minutes for the status to update.
+### Verify Host Availability
 
-Navigate to:
+After registering all hosts, allow a few minutes for Zabbix to initiate communication with each agent. Navigate to:
 
 ```
 Data Collection → Hosts
 ```
 
-Confirm each host shows:
+Confirm each host shows a green **ZBX** availability indicator:
 
 | Host | Interface | Status | Availability |
 |------|-----------|--------|-------------|
-| DC-01 | dc-01.bocorp.local:10050 | Enabled | 🟢 ZBX |
+| Zabbix server | 127.0.0.1:10050 | Enabled | 🟢 ZBX |
+| DC-01 | 10.10.10.10:10050 | Enabled | 🟢 ZBX |
 | WS-01 | WS-01.bocorp.local:10050 | Enabled | 🟢 ZBX |
 | WS-02 | WS-02.bocorp.local:10050 | Enabled | 🟢 ZBX |
-| Zabbix server | 127.0.0.1:10050 | Enabled | 🟢 ZBX |
 
-> ⚠️ Note: WS-02 appears with a red ZBX availability indicator. This is expected behavior. The virtual machine was powered off at the time of documentation due to host resource constraints (RAM), which prevent running more than two Windows VMs simultaneously alongside MON-01. Once WS-02 is powered on, the agent will reconnect automatically and the availability indicator will return to green within a few minutes, without requiring any additional configuration.
+> WS-02 may show a red ZBX indicator if the virtual machine is powered off. Due to host resource constraints, running more than two Windows VMs simultaneously alongside MON-01 is not always possible. Once WS-02 is powered on, the agent reconnects automatically and the availability indicator returns to green within a few minutes without any additional configuration.
 
 📸 **Hosts overview showing all agents connected**
 
@@ -200,9 +197,7 @@ Confirm each host shows:
 
 ---
 
-## 5. Validate Metric Collection
-
-To confirm that data is being collected correctly, the **Latest Data** view was checked for each active host.
+### Verify Metric Collection
 
 Navigate to:
 
@@ -210,13 +205,11 @@ Navigate to:
 Monitoring → Latest data
 ```
 
-Filter by host (e.g., DC-01) and click **Apply**.
-
-Metrics arriving in real time confirmed:
+Filter by host (e.g., DC-01) and click **Apply**. Confirm that metrics are arriving in real time.
 
 | Metric | Example Value |
 |--------|--------------|
-| CPU utilization | 6.85 % |
+| CPU utilization | 6.85% |
 | Cache bytes | 52.51 MB |
 | Free swap space | 834.91 MB |
 | Disk read rate | 18.69 r/s |
@@ -232,8 +225,9 @@ Metrics arriving in real time confirmed:
 
 After completing this section:
 
-- A **Bocorp** host group organizes all monitored machines.
-- DC-01, WS-01, and WS-02 are registered in Zabbix with the **Windows by Zabbix agent** template.
-- Workstations use DNS names to handle dynamic IP assignment gracefully.
-- All active hosts show green availability status.
-- Metrics are being collected and updated in real time.
+- The `Bocorp` host group organizes all monitored machines in Zabbix.
+- DC-01, WS-01, and WS-02 are registered with the `Windows by Zabbix agent` template.
+- DC-01 uses a static IP interface and workstations use DNS name interfaces to handle dynamic IP assignment gracefully.
+- All active hosts show a green ZBX availability indicator.
+- Metrics are being collected and updated in real time across the environment.
+- The environment is ready for Grafana dashboard configuration.
